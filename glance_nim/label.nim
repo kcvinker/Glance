@@ -1,0 +1,149 @@
+# label module Created on 01-Apr-2023 12:32 AM; Author kcvinker [Added to Glance on 02-Jun-2023 07:20]
+# Label type
+#   constructor - newLabel*(parent: Form, text: string, x, y: int32 = 10, w, h: int32 = 0): Label
+#   functions
+        # createHandle() - Create the handle of Label
+
+#     Properties - Getter & Setter available
+#       Name            Type
+        # font          Font
+        # text          string
+        # width         int32
+        # height        int32
+        # xpos          int32
+        # ypos          int32
+        # backColor     Color
+        # foreColor     Color
+
+        # autoSize      bool
+        # multiLine     bool
+        # textAlign     bool
+        # borderStyle   bool
+
+    # Events
+    #     onMouseEnter*, onClick*, onMouseLeave*, onRightClick*, onDoubleClick*,
+    #     onLostFocus*, onGotFocus*: EventHandler - proc(c: Control, e: EventArgs)
+
+    #     onMouseWheel*, onMouseHover*, onMouseMove*, onMouseDown*, onMouseUp*
+    #     onRightMouseDown*, onRightMouseUp*: MouseEventHandler - - proc(c: Control, e: MouseEventArgs)
+
+# Constants
+const
+    SS_NOTIFY = 0x00000100
+    SS_SUNKEN = 0x00001000
+    SWP_NOMOVE = 0x0002
+
+var lbCount = 1
+
+# Forward declaration
+proc lbWndProc(hw: HWND, msg: UINT, wpm: WPARAM, lpm: LPARAM, scID: UINT_PTR, refData: DWORD_PTR): LRESULT {.stdcall.}
+
+# Label constructor
+proc newLabel*(parent: Form, text: LPCWSTR, x, y, w, h: int32): Label {.exportc:"newLabel", stdcall, dynlib.} =
+    new(result)
+    result.mKind = ctLabel
+    result.mClassName = "Static"
+    result.mName = "Label_" & $lbCount
+    result.mParent = parent
+    result.mXpos = x
+    result.mYpos = y
+    result.mWidth = w
+    result.mHeight = h
+    result.mText = toWstring(text)
+    result.mFont = parent.mFont
+    result.mBackColor = parent.mBackColor
+    result.mForeColor = CLR_BLACK
+    result.mAutoSize = true
+    result.mMultiLine = false
+    result.mStyle = WS_VISIBLE or WS_CHILD or WS_CLIPCHILDREN or WS_CLIPSIBLINGS or SS_NOTIFY
+    result.mExStyle = 0
+    result.mHasText = true
+    result.mParent.controls.add(result)
+    result.mCtlID = globalCtlID
+    globalCtlID += 1
+    lbCount += 1
+
+
+proc setLbStyle(this: Label) =
+    if this.mBorder != lbNone:
+        this.mStyle = (if this.mBorder == lbSunken: this.mStyle or SS_SUNKEN else: this.mStyle or WS_BORDER)
+    if this.mMultiLine or this.mWidth > 0 or this.mHeight > 0: this.mAutoSize = false
+    this.mBkBrush = CreateSolidBrush(this.mBackColor.cref)
+
+proc setAutoSize(this: Label, redraw: bool) =
+    var hdc: HDC = GetDC(this.mHandle)
+    var ss : SIZE
+    SelectObject(hdc, this.mFont.handle)
+    GetTextExtentPoint32(hdc, this.mText[0].unsafeAddr, int32(this.mText.len), ss.unsafeAddr)
+    ReleaseDC(this.mHandle, hdc)
+    this.mWidth = ss.cx + 3
+    this.mHeight = ss.cy
+    SetWindowPos(this.mHandle, nil, this.mXpos, this.mYpos, this.mWidth, this.mHeight, SWP_NOMOVE)
+    if redraw: InvalidateRect(this.mHandle, nil, 1)
+
+# Create Label's hwnd
+method createHandle*(this: Label) =
+    this.setLbStyle()
+    this.createHandleInternal()
+    if this.mHandle != nil:
+        this.setSubclass(lbWndProc)
+        this.setFontInternal()
+        if this.mAutoSize: this.setAutoSize(false)
+
+
+proc `autoSize=`*(this: Label, value: bool) {.inline.} = this.mAutoSize = value
+proc autoSize*(this: Label): bool {.inline.} = this.mAutoSize
+
+proc `multiLine=`*(this: Label, value: bool) {.inline.} = this.mMultiLine = value
+proc multiLine*(this: Label): bool {.inline.} = this.mMultiLine
+
+proc `textAlign=`*(this: Label, value: TextAlignment) {.inline.} = this.mTextAlign = value
+proc textAlign*(this: Label): TextAlignment {.inline.} = this.mTextAlign
+
+proc `borderStyle=`*(this: Label, value: LabelBorder) {.inline.} = this.mBorder = value
+proc borderStyle*(this: Label): LabelBorder {.inline.} = this.mBorder
+
+
+proc setLabelProps(this: Label, prop: LabelProps, value: pointer) =
+    case prop
+    of lblAutoSize: this.autoSize = cast[bool](cast[ref int](value)[])
+    of lblMultiLine: this.multiLine = cast[bool](cast[ref int](value)[])
+    of lblTextAlign: this.textAlign = cast[TextAlignment](cast[ref int](value)[])
+    of lblBorderStyle: this.borderStyle = cast[LabelBorder](cast[ref int](value)[])
+
+
+proc getLabelProps(this: Label, prop: LabelProps, value: pointer) =
+    case prop
+    of lblAutoSize: cast[ref bool](value)[]  = this.autoSize
+    of lblMultiLine: cast[ref bool](value)[] = this.multiLine
+    of lblTextAlign: cast[ref int32](value)[] = int32(this.textAlign)
+    of lblBorderStyle: cast[ref int32](value)[] = int32(this.borderStyle)
+
+
+
+
+proc lbWndProc(hw: HWND, msg: UINT, wpm: WPARAM, lpm: LPARAM, scID: UINT_PTR, refData: DWORD_PTR): LRESULT {.stdcall.} =
+    var this = cast[Label](refData)
+    case msg
+    of WM_DESTROY:
+        this.destructor()
+        RemoveWindowSubclass(hw, lbWndProc, scID)
+    of WM_LBUTTONDOWN: this.leftButtonDownHandler(msg, wpm, lpm)
+    of WM_LBUTTONUP: this.leftButtonUpHandler(msg, wpm, lpm)
+    of WM_RBUTTONDOWN: this.rightButtonDownHandler(msg, wpm, lpm)
+    of WM_RBUTTONUP: this.rightButtonUpHandler(msg, wpm, lpm)
+    of WM_MOUSEMOVE: this.mouseMoveHandler(msg, wpm, lpm)
+    of WM_MOUSELEAVE: this.mouseLeaveHandler()
+    of WM_CONTEXTMENU:
+        if this.mContextMenu != nil: this.mContextMenu.showMenu(lpm)
+
+    of WM_PAINT: return this.paintHandler(hw, msg, wpm, lpm)
+
+    of MM_LABEL_COLOR:
+        let hdc = cast[HDC](wpm)
+        if (this.mDrawMode and 1) == 1: SetTextColor(hdc, this.mForeColor.cref)
+        SetBkColor(hdc, this.mBackColor.cref)
+        return cast[LRESULT](this.mBkBrush)
+
+    else: return DefSubclassProc(hw, msg, wpm, lpm)
+    return DefSubclassProc(hw, msg, wpm, lpm)
