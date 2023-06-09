@@ -40,10 +40,10 @@ glf_ListBoxAddRange($lbx, "Windows|Linux|Mac OS|ReactOS") ; Add some items
 glf_ControlSetProperty($lbx, $gControlProps.backColor, 0xffc2d4); Set the back color
 
 Local $lv = glf_NewListView($frm, 270, 161, 330, 150) ; Create a ListView
-glf_ListViewSetHeaderFont($lv, "High Tower Text", 14) ; Set header font
+glf_ListViewSetHeaderFont($lv, "Gabriola", 18) ; Set header font
 glf_ControlSetProperty($lv, $gListViewProps.headerHeight, 32) ; Set header height
-glf_ControlSetProperty($lv, $gListViewProps.headerBackColor, 0x5eb1bf) ; Set header back color
-glf_ControlSetProperty($lv, $gControlProps.backColor, 0x9cc5a1) ; Set list view back color
+glf_ControlSetProperty($lv, $gListViewProps.headerBackColor, 0x2ec4b6) ; Set header back color
+glf_ControlSetProperty($lv, $gControlProps.backColor, 0xadb5bd) ; Set list view back color
 glf_ListViewAddColumns($lv, "Windows|Linux|Mac OS", "0") ; Add three columns
 glf_ListViewAddRow($lv, "Win 8|Mint|OSx Cheetah") ; Add few rows
 glf_ListViewAddRow($lv, "Win 10|Ubuntu|OSx Catalina")
@@ -75,7 +75,7 @@ glf_ControlSetProperty($tkb1, $gTrackBarProps.customDraw, True) ; If set to True
 glf_ControlSetProperty($tkb2, $gTrackBarProps.customDraw, True)
 glf_ControlSetProperty($tkb1, $gTrackBarProps.showSelRange, True) ; We can see the selection are in different color.
 glf_ControlSetProperty($tkb2, $gTrackBarProps.ticColor, 0xff1654) ; Set tic color
-glf_ControlSetProperty($tkb2, $gTrackBarProps.channelColor, 0x006d77) ; Set channel color.
+; glf_ControlSetProperty($tkb2, $gTrackBarProps.channelColor, 0x006d77) ; Set channel color.
 
 Local $tv = glf_NewTreeView($frm, 760, 25, 0, 300) ; Create new TreeView
 glf_ControlSetProperty($tv, $gControlProps.backColor, 0xa3b18a) ; Set back color

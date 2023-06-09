@@ -1,5 +1,5 @@
 # Glance
-GUI Library for AutoIt, based on windows API. 
+GUI Library for AutoIt, based on windows API.
 The back end of this gui library is a dll created in Nim programming language.
 How to use:
   1. Clone or download the repo.
@@ -7,6 +7,9 @@ How to use:
   3. Include glance.au3 in your script like this `#include "glance.au3"`
   4. Use this AutoIt3Wrapper option - `#AutoIt3Wrapper_UseX64=y`
   5. You are done !!.
+
+Note: Use `Aut2exe_x64` for creating exe file from your script.
+  Since Glance is not using AutoIt's message loop, using default compile option in SciTE editor won't work.
 
 ## Screenshots
 ![image](https://github.com/kcvinker/Glance/assets/8840907/702ba1fe-710a-4e61-8f07-f27dfcd9c5da)
