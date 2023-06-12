@@ -13,9 +13,9 @@ proc getMenuItem(this: ContextMenu, idNum: int32): MenuItem =
     for menu in this.mMenus:
         if menu.mId == idNum: return menu
 
-proc getMenuItem(this: ContextMenu, txt: wstring): MenuItem =
+proc getMenuItem(this: ContextMenu, txt: ref Wstring): MenuItem =
     for menu in this.mMenus:
-        if menu.mText == txt: return menu
+        if menu.mText == txt[]: return menu
 
 proc cmenuWndProc(hw: HWND, msg: UINT, wpm: WPARAM, lpm: LPARAM, scID: UINT_PTR, refData: DWORD_PTR): LRESULT {.stdcall.} =
     var this = cast[ContextMenu](refData)
@@ -83,9 +83,9 @@ proc cmenuWndProc(hw: HWND, msg: UINT, wpm: WPARAM, lpm: LPARAM, scID: UINT_PTR,
     return DefSubclassProc(hw, msg, wpm, lpm)
 
 
-proc setContextMenuItem(this: ContextMenu, item: wstring, wptr: LPCWSTR ) =
+proc setContextMenuItem(this: ContextMenu, item: ref Wstring ) =
     let mtyp = if ord(item[0]) == 48: mtContextSep else: mtContextMenu
-    var mi = newMenuItem(wptr, mtyp, this.mHmenu, this.mMenuCount)
+    var mi = newMenuItem(item, mtyp, this.mHmenu, this.mMenuCount)
     this.mMenuCount += 1
     if mtyp == mtContextMenu:
         mi.insertMenuInternal(this.mHMenu)
@@ -115,21 +115,21 @@ proc newContextMenu*(parent: Control, menuItems: LPCWSTR = nil): ContextMenu {.e
     SetWindowSubclass(result.mDummyHwnd, cmenuWndProc, globalSubClassID, cast[DWORD_PTR](cast[PVOID](result)))
     globalSubClassID += 1
     if menuItems != nil:
-        var menuNames = splitWstring(toWstring(menuItems), pipeChar)
+        var menuNames = splitWstring2(toWstring2(menuItems), pipeChar)
         for name in menuNames:
-            result.setContextMenuItem(name, name[0].unsafeAddr)
+            result.setContextMenuItem(name)
 
 
 
 
 proc addContextMenuItem(this: ContextMenu, item: LPCWSTR){.exportc:"addContextMenuItem", stdcall, dynlib.} =
-    var itemTxt = toWstring(item)
-    this.setContextMenuItem(itemTxt, itemTxt[0].unsafeAddr)
+    var itemTxt = toWstring2(item)
+    this.setContextMenuItem(itemTxt)
 
 proc addContextMenuItems(this: ContextMenu, item: LPCWSTR){.exportc:"addContextMenuItems", stdcall, dynlib.} =
-    var itemList = splitWstring(toWstring(item), ord('|'))
+    var itemList = splitWstring2(toWstring2(item), ord('|'))
     for i in itemList:
-        this.setContextMenuItem(i, i[0].unsafeAddr)
+        this.setContextMenuItem(i)
 
 
 
@@ -151,7 +151,7 @@ proc menus*(this: ContextMenu): seq[MenuItem] = return this.mMenus
 
 proc setContextMenuEvents(this: Control, menuName: LPCWSTR, eventIndex: int, funcPtr: MenuEventHandler) {.
                                                         exportc:"setContextMenuEvents", stdcall, dynlib.} =
-    var menuText = toWstring(menuName)
+    var menuText = toWstring2(menuName)
     var menu = this.mContextMenu.getMenuItem(menuText)
     if menu != nil:
         let event = cast[MenuEvents](eventIndex)

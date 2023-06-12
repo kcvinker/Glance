@@ -38,7 +38,7 @@ const
 # Package variables==================================================
 var globalCtlID : int32 = 100
 var globalSubClassID : UINT_PTR = 1000
-method createHandle(c: Control) {.base.} = discard
+method createHandle(c: Control) {.base, locks:0.} = discard
 # Control class's methods====================================================
 proc setSubclass(this: Control, ctlWndProc: SUBCLASSPROC) =
     SetWindowSubclass(this.mHandle, ctlWndProc, globalSubClassID, cast[DWORD_PTR](cast[PVOID](this)))
@@ -64,7 +64,7 @@ proc getControlText(hw: HWND): string =
     let count = GetWindowTextLengthW(hw)
     var buffer: seq[WCHAR] = newSeq[WCHAR](count + 1)
     GetWindowTextW(hw, buffer[0].unsafeAddr, count + 1)
-    result = wstringToString(buffer)
+    result = WstringToString(buffer)
 
 # Control class's properties==========================================
 proc handle*(this: Control): HWND = this.mHandle
@@ -79,7 +79,7 @@ proc `text=`*(this: Control, value: LPCWSTR) {.inline.} =
     this.mText = toWstring(value)
     if this.mIsCreated: discard
 
-proc text*(this: Control): wstring {.inline.} = return this.mText
+proc text*(this: Control): Wstring {.inline.} = return this.mText
 
 proc `width=`*(this: Control, value: int32) {.inline.} =
     this.mWidth = value

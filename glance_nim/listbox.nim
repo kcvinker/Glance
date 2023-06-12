@@ -163,7 +163,7 @@ proc manageItems(this: ListBox) =
 
     if this.mDummyIndex > -1: this.sendMsg(LB_SETCURSEL, this.mDummyIndex, 0)
 
-proc getItemInternal(this: ListBox, index: int32) : wstring =
+proc getItemInternal(this: ListBox, index: int32) : Wstring =
     let iLen = int32(this.sendMsg(LB_GETTEXTLEN, index, 0))
     result = newSeq[WCHAR](iLen + 1)
     this.sendMsg(LB_GETTEXT, index, result[0].unsafeAddr)
@@ -184,7 +184,7 @@ method createHandle(this: ListBox) =
 proc indexOf*(this: ListBox, item: LPCWSTR): int32 {.inline, exportc:"listBoxIndexOf", stdcall, dynlib.} =
     result = -1
     if this.mIsCreated:
-        let witem : wstring = toWstring(item)
+        let witem = toWstring2(item)
         result = int32(this.sendMsg(LB_FINDSTRINGEXACT, -1, witem[0].unsafeAddr))
 
 proc selectAll*(this: ListBox) {.exportc:"listBoxSelectAll", stdcall, dynlib.} =
@@ -198,15 +198,15 @@ proc clearSelection*(this: ListBox) {.exportc:"listBoxClearSelection", stdcall, 
             this.sendMsg(LB_SETCURSEL, -1, 0)
 
 proc addItem*(this: ListBox, item: LPCWSTR) {.exportc:"listBoxAddItem", stdcall, dynlib.} =
-    let sitem : wstring = toWstring(item)
+    let sitem = toWstring2(item)
     if this.mIsCreated: this.sendMsg(LB_ADDSTRING, 0, sitem[0].unsafeAddr)
-    this.mItems.add(sitem)
+    this.mItems.add(sitem[])
 
 proc addItems*(this: ListBox, args: LPCWSTR) {.exportc:"listBoxAddItems", stdcall, dynlib.} =
-    var rowTxt = toWstring(args)
-    var itemSeq = splitWstring(rowTxt, pipeChar)
+    var rowTxt = toWstring2(args)
+    var itemSeq = splitWstring2(rowTxt, pipeChar)
     for item in itemSeq:
-        this.mItems.add(item)
+        this.mItems.add(item[])
         if this.mIsCreated: this.sendMsg(LB_ADDSTRING, 0, item[0].unsafeAddr)
 
 
@@ -214,20 +214,20 @@ proc addItems*(this: ListBox, args: LPCWSTR) {.exportc:"listBoxAddItems", stdcal
 
 proc insertItem*(this: ListBox, item: LPCWSTR, index: int32) {.exportc:"listBoxInsertItem", stdcall, dynlib.} =
     if this.mIsCreated:
-        let sitem : wstring = toWstring(item)
+        let sitem = toWstring2(item)
         this.sendMsg(LB_INSERTSTRING, index, sitem[0].unsafeAddr)
-        this.mItems.insert(sitem, index)
+        this.mItems.insert(sitem[], index)
 
 proc removeItem*(this: ListBox, item: LPCWSTR) {.exportc:"listBoxRemoveItem1", stdcall, dynlib.} =
     if this.mIsCreated:
-        let sitem : wstring = toWstring(item)
+        let sitem = toWstring2(item)
         let index = int32(this.sendMsg(LB_FINDSTRINGEXACT, -1, sitem[0].unsafeAddr))
         if index != LB_ERR:
             this.sendMsg(LB_DELETESTRING, index, 0)
             var wIndex = -1
             for wstrItem in this.mItems:
                 wIndex += 1
-                if wstrItem == sitem: break
+                if wstrItem == sitem[]: break
             if wIndex > -1: this.mItems.delete(wIndex)
 
 proc removeItem*(this: ListBox, index: int32) {.exportc:"listBoxRemoveItem2", stdcall, dynlib.} =
@@ -282,7 +282,7 @@ proc multiSelection*(this: ListBox): bool {.inline.} = this.mMultiSel
 
 proc `selectedItem=`*(this: ListBox, value: LPCWSTR) =
     if this.mIsCreated and this.mItems.len > 0:
-        let sitem : wstring = toWstring(value)
+        let sitem : Wstring = toWstring(value)
         let index = int32(this.sendMsg(LB_FINDSTRINGEXACT, -1, sitem[0].unsafeAddr))
         if index != LB_ERR: this.sendMsg(LB_SETCURSEL, index, 0)
 
@@ -294,7 +294,7 @@ proc selectedItem*(this: ListBox): LPCWSTR =
             var item = this.getItemInternal(this.mSelIndex)
             result = item[0].unsafeAddr
 
-proc selectedItems*(this: ListBox): seq[wstring] =
+proc selectedItems*(this: ListBox): seq[Wstring] =
     result = @[]
     if this.mIsCreated and this.mMultiSel:
         let selCount = int32(this.sendMsg(LB_GETSELCOUNT, 0, 0))

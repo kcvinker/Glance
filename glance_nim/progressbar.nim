@@ -81,6 +81,7 @@ proc newProgressBar*(parent: Form, x, y, w, h: int32): ProgressBar {.exportc:"ne
     result.mCtlID = globalCtlID
     globalCtlID += 1
     pbCount += 1
+    # echo "prog prop value ", $int(ProgressBarProps.pgbValue)
 
 
 proc setPbStyle(this: ProgressBar) =
@@ -98,6 +99,7 @@ method createHandle*(this: ProgressBar) =
         this.setFontInternal()
         this.sendMsg(PBM_SETRANGE32, this.mMinValue, this.mMaxValue)
         this.sendMsg(PBM_SETSTEP, this.mStep, 0)
+        if this.mValue > 0: this.sendMsg(PBM_SETPOS, this.mValue, 0)
 
 # Increment progress bar value by step value
 proc increment*(this: ProgressBar) {.exportc:"progressBarIncrement", stdcall, dynlib.} =

@@ -35,7 +35,7 @@ let CLR_WHITE = newColor(0xFFFFFF)
 let CLR_BLACK = newColor(0x000000)
 
 
-proc newFont*(fname: wstring, fsize: int32, fweight: FontWeight = FontWeight.fwNormal,
+proc newFont*(fname: Wstring, fsize: int32, fweight: FontWeight = FontWeight.fwNormal,
                 italic: bool = false, underline: bool = false, strikeout: bool = false) : Font =
     new(result)
     if fname.len > 32 : raise newException(OSError, "Length of font name exceeds 32 characters")
@@ -81,8 +81,8 @@ proc getMousePosOnMsg(): POINT =
 #===========================================MENU SECTION==============================================
 var staticMenuID : int32 = 100
 
-proc addMenu*(this: MenuBar, txt: LPCWSTR, txtColor: uint = 0x000000): MenuItem {.exportc:"menubarAddMenu", stdcall, dynlib, discardable.}
-proc newMenuBar(parent: Form, menuNames: LPCWSTR = nil ) : MenuBar {.exportc:"newMenuBarPtr", stdcall, dynlib.} =
+proc addMenu*(this: MenuBar, txt: ref Wstring, txtColor: uint = 0x000000): MenuItem {.exportc:"menubarAddMenu", stdcall, dynlib, discardable.}
+proc newMenuBar(parent: Form, menuNames: LPWSTR ) : MenuBar {.exportc:"newMenuBarPtr", stdcall, dynlib.} =
     new(result)
     result.mHmenubar = CreateMenu()
     result.mParent = parent
@@ -93,21 +93,36 @@ proc newMenuBar(parent: Form, menuNames: LPCWSTR = nil ) : MenuBar {.exportc:"ne
     parent.mMenuGrayCref = newColor(0x979dac).cref
     parent.mMenu = result
     if menuNames != nil:
-        var nameSeq = splitWstring(toWstring(menuNames), ord('|'))
-        for i in countup(0, (nameSeq.len - 1)):
-            var menuname = nameSeq[i]
-            result.addMenu(menuname[0].addr)
+        try:
+            var rawNames = toWstring2(menuNames)
+            #echo "mn ", rawNames[].repr
+            var nameSeq = splitWstring2(rawNames, pipeChar)        
+            for i, name in nameSeq:
+                #var menuname: Wstring = nameSeq[i]
+                #echo "mn ", menuname.repr
+                result.addMenu(name)
+            #echo "tfix_", $nameSeq.len
+        except CatchableError as ex:
+          echo "An exception occurred:", ex.msg
+          echo "Exception type:", ex.type
+          #echo "Stack trace:", ex.traceback
+        finally:
+          echo "Execution completed"
+
+
+        
 
 
 
-proc newMenuItem*(txt: LPCWSTR, typ: MenuType, parentHmenu : HMENU,
+
+proc newMenuItem*(txt: ref Wstring, typ: MenuType, parentHmenu : HMENU,
                     indexNum: int32): MenuItem =
     new(result)
     result.mPopup = if typ == mtBaseMenu or typ == mtPopup: true else: false
     result.mHmenu = if result.mPopup : CreatePopupMenu() else: CreateMenu()
     result.mIndex = indexNum
     result.mId = staticMenuID
-    result.mText = toWstring(txt)
+    result.mText = txt[]
     result.mWideText = result.mText[0].addr
     result.mType = typ
     result.mParentHmenu = parentHmenu
@@ -129,7 +144,7 @@ proc insertMenuInternal(this: MenuItem, parentHmenu: HMENU) =
     InsertMenuItemW(parentHmenu, UINT(this.mIndex), 1, mii.unsafeAddr)
     this.mIsCreated = true
 
-# proc findMenuItem(this: MenuItem, txt: wstring): MenuItem =
+# proc findMenuItem(this: MenuItem, txt: Wstring): MenuItem =
 #     if this.mText == txt:
 #         return this
 #     else:
@@ -155,7 +170,8 @@ proc create(this: MenuItem) =
     else: discard
 
 
-proc addMenu*(this: MenuBar, txt: LPCWSTR, txtColor: uint = 0x000000): MenuItem  =
+proc addMenu*(this: MenuBar, txt: ref Wstring, txtColor: uint = 0x000000): MenuItem  =
+
     result = newMenuItem(txt, mtBaseMenu, this.mHmenubar, this.mMenuCount)
     result.mFormHwnd = this.mParent.mHandle
     result.mFgColor = newColor(txtColor)
@@ -168,7 +184,9 @@ proc addMenu*(this: MenuItem, txt: LPCWSTR, txtColor: uint = 0x000000, sm: bool 
     if this.mType == mtMenuItem:
         this.mHmenu = CreatePopupMenu()
         this.mPopup = true
-    result = newMenuItem(txt, mtMenuItem, this.mHmenu, this.mChildCount)
+
+    var rws = toWstring2(txt)
+    result = newMenuItem(rws, mtMenuItem, this.mHmenu, this.mChildCount)
     result.mFgColor = newColor(txtColor)
     result.mFormHwnd = this.mFormHwnd
     result.mFormMenu = this.mFormMenu
@@ -211,7 +229,7 @@ proc addSeparator*(this: MenuItem) =
     this.mChildCount += 1
     this.mMenus[mi.mId] = mi
 
-proc createHandle*(this: MenuBar) =
+proc createMenuBarHandle(this: MenuBar) =
     this.mParent.mMenuDefBgBrush = newColor(0xe9ecef).makeHBRUSH()
     this.mParent.mMenuHotBgBrush = newColor(0x90e0ef).makeHBRUSH()
     this.mParent.mMenuFrameBrush = newColor(0x0077b6).makeHBRUSH()

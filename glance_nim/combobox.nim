@@ -174,20 +174,20 @@ method createHandle*(this: ComboBox) =
         this.mReEnabled = false
 
 proc addItem*(this: ComboBox, item: LPCWSTR) {.exportc:"addComboItem", stdcall, dynlib.} =
-    let sitem : wstring = toWstring(item)
+    let sitem : Wstring = toWstring(item)
     if this.mIsCreated: this.sendMsg(CB_ADDSTRING, 0, sitem[0].unsafeAddr)
     this.mItems.add(sitem)
 
 proc addItems*(this: ComboBox, args: LPCWSTR) {.exportc:"addComboItems", stdcall, dynlib.} =
-    var rowTxt = toWstring(args)
-    var rowSeq = splitWstring(rowTxt, pipeChar)
+    var rowTxt = toWstring2(args)
+    var rowSeq = splitWstring2(rowTxt, pipeChar)
     for item in rowSeq:
         if this.mIsCreated: this.sendMsg(CB_ADDSTRING, 0, item[0].unsafeAddr)
-        this.mItems.add(item)
+        this.mItems.add(item[])
 
 proc removeItem*(this: ComboBox, item: LPCWSTR) {.exportc:"removeComboItem1", stdcall, dynlib.} =
     if this.mIsCreated:
-        let sitem :  wstring = toWstring(item)
+        let sitem :  Wstring = toWstring(item)
         let index = int32(this.sendMsg(CB_FINDSTRINGEXACT, -1, sitem[0].unsafeAddr))
         if index != CB_ERR:
             this.sendMsg(CB_DELETESTRING, index, 0)
@@ -231,7 +231,7 @@ proc selectedIndex*(this: ComboBox): int32 =
 
 proc `selctedItem=`*(this: ComboBox, value: LPCWSTR) =
     if this.mIsCreated and this.mItems.len > 0:
-        let sitem :  wstring = toWstring(value)
+        let sitem :  Wstring = toWstring(value)
         let index = int32(this.sendMsg(CB_FINDSTRINGEXACT, -1, sitem[0].unsafeAddr))
         if index != CB_ERR: this.sendMsg(CB_SETCURSEL, index, 0)
 

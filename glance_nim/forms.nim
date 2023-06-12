@@ -191,7 +191,7 @@ proc frmPaintHandler(this: Form, hw: HWND, msg: UINT, wpm: WPARAM, lpm: LPARAM) 
         return 1
     return DefWindowProcW(hw, msg, wpm, lpm)
 
-proc getMenuFromText(this: Form, txt: wstring) : MenuItem =
+proc getMenuFromText(this: Form, txt: Wstring) : MenuItem =
     for menu in this.mMenuItemDict.mvalues:
         if menu.mText == txt:
             result = menu
@@ -229,10 +229,12 @@ proc newForm(title: LPCWSTR, width: int32, height: int32,
     result.mName = "Form_" & $appData.formCount
     appData.formCount += 1
     result.onMouseUp = frmOnMouseUp
+    echo "form is inited"
 
 
 proc createFormHandle(this: Form): HWND {.exportc:"frmCreateHwnd", stdcall, dynlib.} =
     this.setFormStyles()
+
     this.setFormPosition()
     this.mHandle = CreateWindowExW( this.mExStyle,
                                     toWcharPtr(this.mClassName),
@@ -245,6 +247,7 @@ proc createFormHandle(this: Form): HWND {.exportc:"frmCreateHwnd", stdcall, dynl
         SetWindowLongPtrW(this.mHandle, GWLP_USERDATA, cast[LONG_PTR](cast[PVOID](this)))
         this.setFontInternal()
         result = this.mHandle
+        echo "form created"
 
 
 

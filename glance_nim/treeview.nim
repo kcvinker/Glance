@@ -183,13 +183,13 @@ proc newTreeView*(parent: Form, x, y, w, h: int32): TreeView {.
 
 
 
-proc newTreeNode*(text: wstring, img, selImg: int32 = -1): TreeNode =
+proc newTreeNode*(text: ref Wstring, img, selImg: int32 = -1): TreeNode =
     new(result)
     result.mImgIndex = img
     result.mSelImgIndex = selImg
     result.mForeColor = CLR_BLACK
     result.mBackColor = CLR_WHITE
-    result.mText = text
+    result.mText = text[]
     result.mIndex = -1
 
 proc setTVStyle(this: TreeView) =
@@ -258,6 +258,7 @@ proc addNodeInternal(this: TreeView, node: TreeNode, nop: NodeOps,
         errMsg = "Can't Insert Child"
 
     let hItem =  cast[HTREEITEM](this.sendMsg(TVM_INSERTITEMW, 0, tis.unsafeAddr))
+    # echo "tvm-ins result ", hItem.repr
     if hItem != nil:
         node.mHandle = hItem
         this.mUniqNodeID += 1
@@ -291,6 +292,7 @@ proc createNewNodeInfo(node: TreeNode, nodeOp: NodeOps,
     result.opMode = nodeOp
     result.position = pos
 
+
 # Create TreeView's hwnd
 method createHandle*(this: TreeView) =
     this.setTVStyle()
@@ -299,85 +301,88 @@ method createHandle*(this: TreeView) =
         this.setSubclass(tvWndProc)
         this.setFontInternal()
         this.sendInitialMessages()
-        if this.newNodes.len > 0:
-            for nni in this.newNodes:
-                this.addNodeInternal(nni.node, nni.opMode, nni.parent, nni.position)
-            this.newNodes = @[]
-
-
-proc addNodeHelper(this: TreeView, node: TreeNode, nopt: NodeOps, pnode: TreeNode = nil, pos: int32 = -1) {.inline.} =
-    if this.mIsCreated:
-        this.addNodeInternal(node, nopt, pnode, pos)
-    else:
-        this.newNodes.add(createNewNodeInfo(node, nopt, pnode, pos))
 
 
 
 proc addNode(this: TreeView, nodeText: LPCWSTR) {.exportc:"tvAddNode1", stdcall, dynlib, discardable.} =
-    var node = newTreeNode(toWstring(nodeText))
-    this.addNodeHelper(node, noAddNode)
+    if not this.mIsCreated: raise newException(Exception, "Treeview handle is invalid")
+    var node = newTreeNode(toWstring2(nodeText))
+    this.addNodeInternal(node, noAddNode)
 
 proc addNode*(this: TreeView, node: TreeNode) {.exportc:"tvAddNode2", stdcall, dynlib.} =
-    this.addNodeHelper(node, noAddNode)
+    if not this.mIsCreated: raise newException(Exception, "Treeview handle is invalid")
+    this.addNodeInternal(node, noAddNode)
 
 proc addNodes*(this: TreeView, nodeText: LPCWSTR) {.exportc:"tvAddNodes", stdcall, dynlib.} =
-    var wtext = toWstring(nodeText)
-    var namesSeq = splitWstring(wtext, pipeChar)
+    if not this.mIsCreated: raise newException(Exception, "Treeview handle is invalid")
+    var wtext = toWstring2(nodeText)
+    var namesSeq = splitWstring2(wtext, pipeChar)
     for name in namesSeq:
         var node = newTreeNode(name)
-        this.addNodeHelper(node, noAddNode)
+        this.addNodeInternal(node, noAddNode)
+
+
 
 
 
 
 proc addChildNode*(this: TreeView, parent: TreeNode, nodeText: LPCWSTR) {.exportc:"tvAddChildNode1", stdcall, dynlib, } =
-    var node = newTreeNode(toWstring(nodeText))
-    this.addNodeHelper(node, noAddChild, parent)
+    if not this.mIsCreated: raise newException(Exception, "Treeview handle is invalid")
+    var node = newTreeNode(toWstring2(nodeText))
+    this.addNodeInternal(node, noAddChild, parent)
 
 proc addChildNode*(this: TreeView, node: TreeNode, parent: TreeNode) {.exportc:"tvAddChildNode2", stdcall, dynlib.} =
-    this.addNodeHelper(node, noAddChild, parent)
+    if not this.mIsCreated: raise newException(Exception, "Treeview handle is invalid")
+    this.addNodeInternal(node, noAddChild, parent)
 
 proc addChildNode*(this: TreeView, pnIndex: int, nodeText: LPCWSTR) {.exportc:"tvAddChildNode3", stdcall, dynlib.} =
-    var node = newTreeNode(toWstring(nodeText))
+    if not this.mIsCreated: raise newException(Exception, "Treeview handle is invalid")
+    var node = newTreeNode(toWstring2(nodeText))
     if pnIndex < this.mNodes.len:
-        this.addNodeHelper(node, noAddChild, this.mNodes[pnIndex])
+        this.addNodeInternal(node, noAddChild, this.mNodes[pnIndex])
 
 
 
 proc addChildNodes*(this: TreeView, pnIndex: int, nodeText: LPCWSTR) {.exportc:"tvAddChildNodes1", stdcall, dynlib.} =
+    if not this.mIsCreated: raise newException(Exception, "Treeview handle is invalid")
     if pnIndex < this.mNodes.len:
-        var wtext = toWstring(nodeText)
-        var namesSeq = splitWstring(wtext, pipeChar)
+        var wtext = toWstring2(nodeText)
+        var namesSeq = splitWstring2(wtext, pipeChar)
         for name in namesSeq:
             var node = newTreeNode(name)
-            this.addNodeHelper(node, noAddChild, this.mNodes[pnIndex])
+            this.addNodeInternal(node, noAddChild, this.mNodes[pnIndex])
 
 proc addChildNodes*(this: TreeView, pnode: TreeNode, nodeText: LPCWSTR) {.exportc:"tvAddChildNodes2", stdcall, dynlib.} =
-    var wtext = toWstring(nodeText)
-    var namesSeq = splitWstring(wtext, pipeChar)
+    if not this.mIsCreated: raise newException(Exception, "Treeview handle is invalid")
+    var wtext = toWstring2(nodeText)
+    var namesSeq = splitWstring2(wtext, pipeChar)
     for name in namesSeq:
         var node = newTreeNode(name)
-        this.addNodeHelper(node, noAddChild, pnode)
+        this.addNodeInternal(node, noAddChild, pnode)
 
 
 
 proc insertNode*(this: TreeView, nodeText: LPCWSTR, position: int32) {.exportc:"tvInsertNode1", stdcall, dynlib.} =
-    var node = newTreeNode(toWstring(nodeText))
-    this.addNodeHelper(node, noInsertNode, pos = position)
+    if not this.mIsCreated: raise newException(Exception, "Treeview handle is invalid")
+    var node = newTreeNode(toWstring2(nodeText))
+    this.addNodeInternal(node, noInsertNode, pos = position)
 
 proc insertNode*(this: TreeView, node: TreeNode, position: int32) {.exportc:"tvInsertNode2", stdcall, dynlib.} =
-    this.addNodeHelper(node, noInsertNode, pos = position)
+    if not this.mIsCreated: raise newException(Exception, "Treeview handle is invalid")
+    this.addNodeInternal(node, noInsertNode, pos = position)
 
 
 
 proc insertChildNode*(this: TreeView, nodeText: LPCWSTR, parent: TreeNode, position: int32) {.
                             exportc:"tvInsertChildNode1", stdcall, dynlib, discardable.} =
-    var node = newTreeNode(toWstring(nodeText))
-    this.addNodeHelper(node, noInsertChild, parent, position)
+    if not this.mIsCreated: raise newException(Exception, "Treeview handle is invalid")
+    var node = newTreeNode(toWstring2(nodeText))
+    this.addNodeInternal(node, noInsertChild, parent, position)
 
 proc insertChildNode*(this: TreeView, node: TreeNode, parent: TreeNode, position: int32) {.
                                 exportc:"tvInsertChildNode2", stdcall, dynlib, discardable.} =
-    this.addNodeHelper(node, noInsertChild, parent, position)
+    if not this.mIsCreated: raise newException(Exception, "Treeview handle is invalid")
+    this.addNodeInternal(node, noInsertChild, parent, position)
 
 
 
@@ -409,7 +414,7 @@ proc nodeToLparm(node: TreeNode): LPARAM = cast[LPARAM](cast[PVOID](node))
 
 proc addChildNode*(this: TreeNode, nodeText: LPCWSTR) : TreeNode {.
                         exportc:"treeNodeAddChildNode1", stdcall, dynlib, discardable, discardable.} =
-    result = newTreeNode(toWstring(nodeText))
+    result = newTreeNode(toWstring2(nodeText))
     let nnData = newNodeNotify(result, this, noAddChild)
     this.sendMsg(MM_NODE_NOTIFY, naAddNode, cast[PVOID](nnData))
 
@@ -420,7 +425,7 @@ proc addChildNode*(this: TreeNode, chNode: TreeNode) {.
     this.sendMsg(MM_NODE_NOTIFY, naAddNode, cast[PVOID](nnData))
 
 proc insertChildNode*(this: TreeNode, nodeText: LPCWSTR, position: int32) : TreeNode {.discardable.} =
-    result = newTreeNode(toWstring(nodeText))
+    result = newTreeNode(toWstring2(nodeText))
     let nnData = newNodeNotify(result, this, noInsertChild, position)
     this.sendMsg(MM_NODE_NOTIFY, naAddNode, cast[PVOID](nnData))
 
@@ -478,8 +483,8 @@ proc `lineColor=`*(this: TreeView, value: uint) = this.mLineColor =  newColor(va
 # TreeNode properties-------------------------------------------------------
 proc nodes*(this: TreeNode) : seq[TreeNode] = this.mNodes
 proc index*(this: TreeNode): int32 = this.mIndex
-proc text*(this: TreeNode): wstring = this.mText
-proc `text=`*(this: TreeNode, value: wstring) =
+proc text*(this: TreeNode): Wstring = this.mText
+proc `text=`*(this: TreeNode, value: Wstring) =
     this.mText = value
     if this.mIsCreated:
         this.sendMsg(MM_NODE_NOTIFY, naSetText, cast[PVOID](this))
@@ -579,7 +584,8 @@ proc tvWndProc(hw: HWND, msg: UINT, wpm: WPARAM, lpm: LPARAM, scID: UINT_PTR, re
     of MM_NOTIFY_REFLECT:
         let nmh = cast[LPNMHDR](lpm)
         case nmh.code
-        of NM_DBLCLK:echo "MM_NOTIFY_REFLECT TREEVIEW"
+        of NM_CLICK: discard
+        of NM_DBLCLK:discard
         of NM_CUSTOMDRAW_NM:
             var nmtv = cast[LPNMTVCUSTOMDRAW](lpm)
             case nmtv.nmcd.dwDrawStage:

@@ -85,6 +85,7 @@ var btnCount = 1
 
 # Forward declaration
 proc btnWndProc(hw: HWND, msg: UINT, wpm: WPARAM, lpm: LPARAM, scID: UINT_PTR, refData: DWORD_PTR): LRESULT {.stdcall.}
+#proc createFunction(c: Control) {.nimcall.}
 # proc createHandle*(this: Button) : HWND {.exportc:"BtnCreateHwnd", stdcall, dynlib, discardable.}
 
 
@@ -112,8 +113,11 @@ proc newButton*(parent: Form, txt: LPCWSTR, x: int32 = 10, y: int32 = 10, w: int
     globalCtlID += 1
 
 
+#method createHandle(this: Button) = echo "btn"
+
 # Create button's hwnd
-method createHandle(this: Button) =
+method createHandle*(this: Button)  =
+    #var this = cast[Button](c)
     this.createHandleInternal()
     if this.mHandle != nil:
         this.setSubclass(btnWndProc)

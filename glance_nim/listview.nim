@@ -185,9 +185,9 @@ proc newListView*(parent: Form, x, y, w, h: int32): ListView {.exportc:"newListV
     lvCount += 1
 
 
-proc newListViewColumn*(text: wstring, width: int32, imgIndex: int32 = -1) : ListViewColumn {.exportc:"newListViewColumn", stdcall, dynlib.} =
+proc newListViewColumn*(text: ref Wstring, width: int32, imgIndex: int32 = -1) : ListViewColumn {.exportc:"newListViewColumn", stdcall, dynlib.} =
     new(result)
-    result.mText = text
+    result.mText = text[]
     result.mWidth = width
     result.mImgIndex = imgIndex
     result.mImgOnRight = false
@@ -197,10 +197,10 @@ proc newListViewColumn*(text: wstring, width: int32, imgIndex: int32 = -1) : Lis
     result.mHdrTextFlag = DT_SINGLELINE or DT_VCENTER or DT_CENTER or DT_NOPREFIX
 
 
-proc newListViewItem*(text: wstring, bgColor: uint = 0xFFFFFF, fgColor: uint = 0x000000,
+proc newListViewItem*(text: ref Wstring, bgColor: uint = 0xFFFFFF, fgColor: uint = 0x000000,
                         imgIndex: int32 = -1): ListViewItem {.exportc:"newListViewItem", stdcall, dynlib.} =
     new(result)
-    result.mText = text
+    result.mText = text[]
     result.mBackColor = newColor(bgColor)
     result.mForeColor = newColor(fgColor)
     result.mIndex = -1
@@ -287,7 +287,7 @@ proc addItemInternal(this: ListView, item: ListViewItem, bFlag: bool = true) =
         lvi.iItem = item.mIndex
         lvi.iSubItem = 0
         lvi.iImage = item.mImgIndex
-        lvi.pszText = item.mText[0].addr
+        lvi.pszText = item.mText[0].unsafeAddr
         lvi.cchTextMax = int32(item.mText.len)
         lvi.lParam = cast[LPARAM](cast[PVOID](item))
         this.sendMsg(LVM_INSERTITEMW, 0, lvi.addr)
@@ -387,14 +387,14 @@ method createHandle*(this: ListView) =
 
 proc addColumn*(this: ListView, text: LPCWSTR, width: int32,
                 imgIndex: int32 = -1) {.exportc:"lvAddColumn", stdcall, dynlib.} =
-    var col = newListViewColumn(toWstring(text), width, imgIndex)
+    var col = newListViewColumn(toWstring2(text), width, imgIndex)
     this.addColumnInternal(col)
 
 
 proc addColumns*(this: ListView, colNames: LPCWSTR, colWidths: LPSTR){.exportc:"lvAddColumns", stdcall, dynlib.} =
-    var wColnames = toWstring(colNames)
+    var wColnames = toWstring2(colNames)
     var uColWidths = toUtf8String(colWidths)
-    var namesSeq = splitWstring(wColnames, pipeChar)
+    var namesSeq = splitWstring2(wColnames, pipeChar)
     var widthSeq : seq[int]
     if uColWidths == "0":
         for _ in namesSeq: widthSeq.add(100)
@@ -410,7 +410,7 @@ proc addColumns*(this: ListView, colNames: LPCWSTR, colWidths: LPSTR){.exportc:"
 
 proc addItem*(this: ListView, itemTxt: LPCWSTR, bgColor: uint = 0xFFFFFF, fgColor: uint = 0x000000,
                 imgIndex: int32 = -1) : ListViewItem {.exportc:"lvAddItem1", stdcall, dynlib, discardable.} =
-    result = newListViewItem(toWstring(itemTxt), bgColor, fgColor, imgIndex)
+    result = newListViewItem(toWstring2(itemTxt), bgColor, fgColor, imgIndex)
     result.mIndex = this.mRowIndex
     this.mRowIndex += 1
     this.addItemInternal(result)
@@ -422,12 +422,12 @@ proc addItem*(this: ListView, item: ListViewItem) {.exportc:"lvAddItem2", stdcal
     this.addItemInternal(item)
 
 proc addLvSubItem(item: ListViewItem, subitm: LPCWSTR) {.exportc:"lvAddSubitem1", stdcall, dynlib.} =
-    item.mSubItems.add(toWstring(subitm))
+    item.mSubItems.add((toWstring2(subitm))[])
 
 proc addLvSubItem(this: ListView, itemIndex: int32, subitm: LPCWSTR) {.exportc:"lvAddSubitem2", stdcall, dynlib.} =
     if itemIndex < this.mItems.len:
-        this.mItems[itemIndex].mSubItems.add(toWstring(subitm))
-    # var sitem : wstring
+        this.mItems[itemIndex].mSubItems.add((toWstring2(subitm))[])
+    # var sitem : Wstring
     # if subitm is LPCWSTR:
     #     sitem = toWstring(subitm)
     # else:
@@ -443,15 +443,15 @@ proc addLvSubItem(this: ListView, itemIndex: int32, subitm: LPCWSTR) {.exportc:"
 
 proc addRow*(this: ListView, items: LPCWSTR) {.exportc:"lvAddRow", stdcall, dynlib.}  =
     if this.mViewStyle != lvsReport: raise newException(Exception, "Only works for Report view style.")
-    var rowTxt = toWstring(items)
-    var rowSeq = splitWstring(rowTxt, pipeChar)
+    var rowTxt = toWstring2(items)
+    var rowSeq = splitWstring2(rowTxt, pipeChar)
     if rowSeq.len == this.mColumns.len:
         var lvitem = newListViewItem(rowSeq[0])
         lvitem.mIndex = this.mRowIndex
         this.mRowIndex += 1
         for i, item in rowSeq:
             if i == 0: continue
-            lvitem.mSubItems.add(rowSeq[i])
+            lvitem.mSubItems.add((rowSeq[i])[])
         this.addItemInternal(lvitem)
 
 
@@ -462,19 +462,19 @@ proc addRow*(this: ListView, items: LPCWSTR) {.exportc:"lvAddRow", stdcall, dynl
 
 proc addSubItem*(this: ListViewItem, subitem: LPWSTR, subIndx: int32,
                     imgIndex: int32 = -1) {.exportc:"listViewAddSubItem", stdcall, dynlib.} =
-    let sitem : wstring = toWstring(subitem)
+    let sitem = toWstring2(subitem)
     var lw: LVITEMW
     lw.iSubItem = subIndx
     lw.pszText = sitem[0].unsafeAddr
     lw.iImage = imgIndex
     SendMessageW(this.mLvHandle, LVM_SETITEMTEXTW, WPARAM(this.mIndex), cast[LPARAM](lw.unsafeAddr))
-    this.mSubItems.add(sitem)
+    this.mSubItems.add(sitem[])
 
 proc setHeaderFont(this: ListView, fname: LPCWSTR, fsize: int32, fweight: int32 = int32(fwNormal)) {.
                         exportc:"listViewSetHeaderFont", stdcall, dynlib.} =
-    var fontName = toWstring(fname)
+    var fontName = toWstring2(fname)
     let weight = cast[FontWeight](fweight)
-    var hdrFont = newFont(fontName, fsize, weight)
+    var hdrFont = newFont(fontName[], fsize, weight)
     let whandle = if this.mIsCreated: this.mHdrHandle else: this.mParent.mHandle
     hdrFont.createHandle(whandle)
     this.mHdrFont = hdrFont
@@ -587,7 +587,7 @@ proc foreColor*(this: ListViewColumn): Color {.inline.} = this.mForeColor
 #------ListViewItem properties------------------------------------------------------------
 
 proc index*(this: ListViewItem): int32 {.inline.} = this.mIndex
-proc subItems*(this: ListViewItem): seq[wstring] {.inline.} = this.mSubItems
+proc subItems*(this: ListViewItem): seq[Wstring] {.inline.} = this.mSubItems
 
 proc `text=`*(this: ListViewItem, value: LPCWSTR) {.inline.} = this.mText = toWstring(value)
 proc text*(this: ListViewItem): LPCWSTR {.inline.} = this.mText[0].unsafeAddr

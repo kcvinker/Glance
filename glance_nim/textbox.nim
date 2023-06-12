@@ -119,7 +119,7 @@ proc `textType=`*(this: TextBox, value: TextType) = this.mTextType = value
 proc textType*(this: TextBox): TextType = this.mTextType
 
 proc `cueBanner=`*(this: TextBox, value: LPCWSTR) = this.mCueBanner = toWstring(value)
-proc cueBanner*(this: TextBox): wstring = this.mCueBanner
+proc cueBanner*(this: TextBox): Wstring = this.mCueBanner
 
 proc `multiLine=`*(this: TextBox, value: bool) = this.mMultiLine = value
 proc multiLine*(this: TextBox): bool = this.mMultiLine

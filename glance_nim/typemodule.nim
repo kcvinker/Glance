@@ -138,7 +138,7 @@ type
         fwExtraBold = 800, fwUltraBold = 900
 
     Font* = ref object
-        name*: wstring
+        name*: Wstring
         size*: int32
         weight*: FontWeight
         italics*, underLine*, strikeOut*: bool
@@ -151,7 +151,10 @@ type
         handled*: bool
         cancelled*: bool
 
+type
+
     EventHandler* = proc(c: Control, e: EventArgs) {.stdcall.}
+    CreateDelegate = proc(c: Control) {.stdcall.}
 
     PaintEventArgs = ref object of EventArgs
         paintStruct : LPPAINTSTRUCT
@@ -213,11 +216,11 @@ type
 
     WndProcHandler* = proc(hwnd: HWND, msg: UINT, wpm: WPARAM, lpm: LPARAM): LRESULT {.stdcall.}
 
-    CreateFuncPtr = proc(c: Control) {.stdcall.}
+    CreateFuncPtr = proc(c: Control) {.nimcall.}
 
     Control* = ref object of RootObj # Base class for all controls
         mKind: ControlType
-        mText: wstring
+        mText: Wstring
         mName, mClassName: string
         mHandle: HWND
         mBackColor: Color
@@ -337,7 +340,7 @@ type
     ComboBox* = ref object of Control
         mSelIndex, mOwnCtlID: int32
         mReEnabled, mHasInput: bool
-        mItems: seq[wstring]
+        mItems: seq[Wstring]
         #Events
         onSelectionChanged*, onTextChanged*, onTextUpdated*: EventHandler
         onListOpened*, onListClosed*, onSelectionCommitted*, onSelectionCancelled*: EventHandler
@@ -376,22 +379,22 @@ type
         mDummyIndex: int32
         mSelIndex: int32
         mSelIndices: seq[int32]
-        mItems: seq[wstring]
+        mItems: seq[Wstring]
         # Events
         onSelectionChanged*, onSelectionCancelled*: EventHandler
 
     ListViewItem* = ref object
-        mText: wstring
+        mText: Wstring
         mIndex, mImgIndex: int32
         mBackColor, mForeColor: Color
         mFont: Font
         mLvHandle: HWND
         mColCount: int
         mItemID: int32
-        mSubItems: seq[wstring]
+        mSubItems: seq[Wstring]
 
     ListViewColumn* = ref object
-        mText: wstring
+        mText: Wstring
         mWidth, mIndex, mImgIndex, mOrder: int32
         mImgOnRight, mHasImage, mDrawNeeded, mIsHotItem: bool
         mTextAlign, mHdrTextAlign: TextAlignment
@@ -440,7 +443,7 @@ type
         mWideText: LPCWSTR # For drawing make fast
         mBgColor, mFgColor: Color
         mHmenu, mParentHmenu: HMENU
-        mText : wstring
+        mText : Wstring
         mType : MenuType
         mFormHwnd : HWND
         mMenus : Table[int32, MenuItem]
@@ -472,7 +475,7 @@ type
         mBuddyHandle: HWND
         mPen: HPEN
         mBuddySCID: UINT_PTR
-        mBuddyStr: wstring
+        mBuddyStr: Wstring
         #Event
         onValueChanged*: EventHandler
 
@@ -505,7 +508,7 @@ type
         mTextAlign: TextAlignment
         mTextCase: TextCase
         mTextType: TextType
-        mCueBanner: wstring
+        mCueBanner: Wstring
         mMultiLine, mHideSel, mReadOnly: bool
         #Events
         onTextChanged*: EventHandler
@@ -551,7 +554,7 @@ type
         mHandle: HTREEITEM
         mTreeHandle: HWND
         mParentNode: TreeNode
-        mText: wstring
+        mText: Wstring
         # mNotifyHandler: NodeNotifyHandler
         mNodes: seq[TreeNode]
 
@@ -572,11 +575,13 @@ type
         parent: TreeNode
         opMode: NodeOps
         position: int32
+        pIndex: int
 
     TreeView* = ref object of Control
         mNoLine, mNoButton, mHasCheckBox, mFullRowSel: bool
         mEditable, mShowSel, mHotTrack, mNodeChecked: bool
         mNodeCount, mUniqNodeID: int32
+        tmpPindex: int
         mLineColor: Color
         mSelNode: TreeNode
         newNodes: seq[NewNodeInfo]

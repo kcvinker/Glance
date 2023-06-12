@@ -55,20 +55,22 @@ proc wcharPtrToArrayZ(p: LPCWSTR) : seq[WCHAR] =
 
 
 proc createControlHandles(this: Form) =
-    if this.mMenu != nil: this.mMenu.createHandle()
+    if this.mMenu != nil: this.mMenu.createMenuBarHandle()
     if this.controls.len > 0:
         for ctl in this.controls:
             if not ctl.mIsCreated: ctl.createHandle()
 
+
+
 # Creates all control hwnds and returns the count
-proc createControlHwnds(this: Form): int {.exportc:"createControlHwnds", stdcall, dynlib.} =
-    this.tmpHwndSeq = @[]
-    if this.controls.len > 0:
-        for ctl in this.controls:
-            if not ctl.mIsCreated:
-                ctl.createHandle()
-                this.tmpHwndSeq.add(ctl.mHandle)
-                result += 1
+#proc createControlHwnds(this: Form): int {.exportc:"createControlHwnds", stdcall, dynlib.} =
+#    this.tmpHwndSeq = @[]
+#    if this.controls.len > 0:
+#        for ctl in this.controls:
+#            if not ctl.mIsCreated:
+#                ctl.createHandle()
+#                this.tmpHwndSeq.add(ctl.mHandle)
+#                result += 1
 
 proc display(this: Form ) {.exportc:"frmDisplay", stdcall, dynlib.} =
     this.createControlHandles()
@@ -80,8 +82,8 @@ proc display(this: Form ) {.exportc:"frmDisplay", stdcall, dynlib.} =
         mainLoop()
 
 proc createControlHwnd(this: Control): HWND {.exportc:"createControlHwnd", stdcall, dynlib.} =
-    this.createHandle()
-    result = this.mHandle
+   this.createHandle()
+   result = this.mHandle
 
 
 proc getHwndSeqItem(this: Form, index: int) : HWND {.exportc:"getHwndSeqItem", stdcall, dynlib.} =

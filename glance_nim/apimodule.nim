@@ -19,8 +19,8 @@ type
     BOOL* = int32
     INT* = int32
     LPBOOL* = ptr BOOL
-    wstring* = seq[WCHAR]
-    LPWSEQ* = ptr wstring
+    Wstring* = seq[WCHAR]
+    LPWSEQ* = ptr Wstring
     HANDLE* = pointer
     HWND* = HANDLE
     HBITMAP* = HANDLE
@@ -718,8 +718,14 @@ proc toWcharPtrW32(srcString: string): LPCWSTR =
     discard MultiByteToWideChar(CP_UTF8, 0, srcString[0].unsafeAddr, INT(srcString.len), buffer[0].unsafeAddr, wLen)
     result = buffer[0].unsafeAddr
 
-proc split_a_word(value: wstring, delimiter: int, stIndex: var int) : wstring =
-    for i in countup(stIndex, value.len ):
+proc getDelimiterCount(value: Wstring, delimiter: int): int =
+    for wchar in value:
+        if ord(wchar) == delimiter: result += 1
+
+
+proc split_a_word(value: Wstring, delimiter: int, stIndex: var int) : Wstring =
+    let endpoint = value.len - 1
+    for i in countup(stIndex, endpoint ):
         let wcNum = ord(value[i])
         if wcNum == 0:
             result.add(value[i])
@@ -732,33 +738,68 @@ proc split_a_word(value: wstring, delimiter: int, stIndex: var int) : wstring =
         else:
             result.add(value[i])
 
-proc splitWstring(value: wstring, delimiter: int): seq[wstring] =
+
+proc splitWstring(value: Wstring, delimiter: int): seq[Wstring] =
     var index = 0
+    var seqIndx = 0
+    #let count = getDelimiterCount(value, delimiter) + 1
+    #result = newSeq[Wstring](count)
     while true:
         var tp = split_a_word(value, delimiter, index)
-        result.add(tp)
+        result[seqIndx] = tp
+        seqIndx += 1
         if index == -1: break
 
-proc splitWstring2(value: wstring, delimiter: int): seq[wstring] =
-    var indices : seq[int] = @[]
-    var counter = 0
-    for wchar in value:
-        if ord(wchar) == delimiter: indices.add(counter - 1)
-        counter += 1
 
-    indices.add(value.len - 2) # 1 for 0 based index and 1 for the last null char
-    var sti = 0
-    for ind in indices:
-        result.add(value[sti..ind] & NULLWCHAR)
-        sti = ind + 2 # +1 is next pipe char. +2 is our char
+proc split_a_word2(value: ref Wstring, delimiter: int, stIndex: var int) : ref Wstring =
+    let endpoint = value[].len - 1
+    new(result)
+    for i in countup(stIndex, endpoint ):
+        let wcNum = ord(value[i])
+        if wcNum == 0:
+            result[].add(value[i])
+            stIndex = -1
+            break
+        elif wcNum == delimiter:
+            result[].add(NULLWCHAR)
+            stIndex = i + 1
+            break
+        else:
+            result[].add(value[i])
 
-proc findWcharInWstring(haystack: wstring, needle: int): bool =
+
+proc splitWstring2(value: ref Wstring, delimiter: int):  seq[ref Wstring] =
+    var index = 0
+    var seqIndx = 0
+    #new(result)
+    #let count = getDelimiterCount(value, delimiter) + 1
+    #result = newSeq[Wstring](count)
+    while true:
+        var tp = split_a_word2(value, delimiter, index)
+        result.add(tp)
+        seqIndx += 1
+        if index == -1: break
+
+#proc splitWstring2(value: Wstring, delimiter: int): seq[Wstring] =
+#    var indices : seq[int] = @[]
+#    var counter = 0
+#    for wchar in value:
+#        if ord(wchar) == delimiter: indices.add(counter - 1)
+#        counter += 1
+
+#    indices.add(value.len - 2) # 1 for 0 based index and 1 for the last null char
+#    var sti = 0
+#    for ind in indices:
+#        result.add(value[sti..ind] & NULLWCHAR)
+#        sti = ind + 2 # +1 is next pipe char. +2 is our char
+
+proc findWcharInWstring(haystack: Wstring, needle: int): bool =
     for wc in haystack:
         if ord(wc) == needle: return true
 
 
 
-proc wstringToString(wBuffer: wstring): string =
+proc WstringToString(wBuffer: Wstring): string =
     # let iLen = WideCharToMultiByte(CP_UTF8, 0, wBuffer[0].unsafeAddr, int32(wBuffer.len), nil, 0, nil, nil)
     let iLen = int32(wBuffer.len)
     if iLen <= 0: return ""
@@ -777,20 +818,32 @@ proc wcharPtrToString(wArrPtr: LPCWSTR): string =
     result = cast[string](s)
 
 proc toWcharPtr(txt: string): LPCWSTR = newWideCString(txt)[0].unsafeAddr
-proc toWcharPtr(txt: wstring): LPWSTR = txt[0].unsafeAddr
+proc toWcharPtr(txt: Wstring): LPWSTR = txt[0].unsafeAddr
 proc toLPWSTR(txt: string): LPWSTR = newWideCString(txt)[0].unsafeAddr
 template LOWORD(l: untyped): WORD = WORD(l and 0xffff)
 template HIWORD(l: untyped): WORD = WORD((l shr 16) and 0xffff)
 template GET_WHEEL_DELTA_WPARAM*(wParam: untyped): SHORT = cast[SHORT](HIWORD(wParam))
 
-proc toWstring(source: string) : wstring = # Means array of wchar null terminated
+proc toWstring(source: string) : Wstring = # Means array of wchar null terminated
     let wcs = newWideCString(source)
     var endp = 0
     while endp < source.len + 1:
         result.add(wcs[endp])
         inc endp
 
-proc toWstring(source: LPCWSTR) : wstring = # Means array of wchar, null terminated
+#proc getPtrLength(source: LPCWSTR): int =
+proc toWstring2(source: LPCWSTR) : ref Wstring = # Means array of wchar, null terminated
+    let iptr = cast[ByteAddress](source) #cast[int](source)
+    var index = 0
+    new(result)
+    while index < AU3_STR_LIMIT:
+        let nxtiptr = iptr + (index * WCHAR.sizeof)
+        let nxtwcp = cast[LPWCHAR](nxtiptr)
+        result[].add(nxtwcp[])
+        if ord(nxtwcp[]) == 0: break
+        inc index   
+
+proc toWstring(source: LPCWSTR) : Wstring = # Means array of wchar, null terminated
     let iptr = cast[ByteAddress](source) #cast[int](source)
     var index = 0
     while index < AU3_STR_LIMIT:
