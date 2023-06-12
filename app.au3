@@ -4,7 +4,7 @@
 Local $frm = glf_NewForm("My Autoit window in Nim", 1100, 500) ; Create new Form aka Window
 glf_FormCreateHwnd($frm) ; Create the form's handle
 
-Local $mbar = glf_FormAddMenuBar($frm, "File|Edit|Help") ; Create a menubar for this form
+glf_FormAddMenuBar($frm, "File|Edit|Help") ; Create a menubar for this form
 glf_FormAddMenuItems($frm, "File", "New Job|Remove Job|Exit") ; Add some sub menus for 'File' & 'Edit' menus
 glf_FormAddMenuItems($frm, "Edit", "Format|Font")
 glf_FormAddMenuItems($frm, "New Job", "Basic Job|Intermediate Job|Review Job") ; Add some submenus to 'New Job'
@@ -29,7 +29,7 @@ glf_ControlSetProperty($cmb, $gControlProps.backColor, 0x68d8d6) ; Set the back 
 
 Local $dtp = glf_NewDateTimePicker($frm, 350, 72) ; Create new DateTimePicker aka DTP
 
-Local $gb = glf_NewGroupBox($frm, "My Groupbox", 25, 245, 150, 100) ; Create new GroupBox
+Local $gb = glf_NewGroupBox($frm, "My Groupbox", 25, 250, 155, 100) ; Create new GroupBox
 glf_ControlSetProperty($gb, $gControlProps.foreColor, 0x1a659e) ; Set the fore color
 
 Local $lbl = glf_NewLabel($frm, "Static Label", 260, 370) ; Create a Label
@@ -75,7 +75,7 @@ glf_ControlSetProperty($tkb1, $gTrackBarProps.customDraw, True) ; If set to True
 glf_ControlSetProperty($tkb2, $gTrackBarProps.customDraw, True)
 glf_ControlSetProperty($tkb1, $gTrackBarProps.showSelRange, True) ; We can see the selection are in different color.
 glf_ControlSetProperty($tkb2, $gTrackBarProps.ticColor, 0xff1654) ; Set tic color
-; glf_ControlSetProperty($tkb2, $gTrackBarProps.channelColor, 0x006d77) ; Set channel color.
+;;glf_ControlSetProperty($tkb2, $gTrackBarProps.channelColor, 0x006d77) ; Set channel color.
 
 Local $tv = glf_NewTreeView($frm, 760, 25, 0, 300) ; Create new TreeView
 glf_ControlSetProperty($tv, $gControlProps.backColor, 0xa3b18a) ; Set back color
@@ -87,9 +87,9 @@ glf_TreeViewAddChildNodes($tv, 1, "Mint|Ubuntu|Red Hat|Kali")
 glf_TreeViewAddChildNodes($tv, 2, "OSx Cheetah|OSx Leopard|OSx Catalina|OSx Ventura")
 
 
-func onBtnClick($c, $e) ; $c = sender of this event aka, the button itself. $e = EventArgs, like in .NET
-	print("Calendar view mode", glf_ControlGetProperty($cb1, $gControlProps.width))
-EndFunc
+; func onBtnClick($c, $e) ; $c = sender of this event aka, the button itself. $e = EventArgs, like in .NET
+; 	print("Calendar view mode", glf_ControlGetProperty($cb1, $gControlProps.width))
+; EndFunc
 
 func menuClick($m, $e) ; Here $m is menu itself. $e is MenuEventArgs
 	print("Menu clicked", $m)

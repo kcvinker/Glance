@@ -6,9 +6,10 @@ Global $hDll = 0
 Local $gcList[1] = ["dummy"]
 Local $fnPtrList[0]
 
-func glf_Start()
+func glf_Start()	
 	$hDll = DllOpen("glance.dll")
 	OnAutoItExitRegister("OnScriptExit")
+	ConsoleWrite("dll status " & $hDll & @CRLF)
 EndFunc
 
 Global const $MOUSEBTN_NONE = 0
@@ -276,14 +277,15 @@ Global Enum $maBaseMenu = 1, $maSubMenu, $maSeparator
     $gTreeViewEvents.onBeginEdit = 61
     $gTreeViewEvents.onEndEdit = 62
     $gTreeViewEvents.onNodeDeleted = 63
-    $gTreeViewEvents.onBeforeChecked = 64 ; TreeEventHandler
-    $gTreeViewEvents.onAfterChecked = 65 ; TreeEventHandler
-    $gTreeViewEvents.onBeforeSelected = 66 ; TreeEventHandler
-    $gTreeViewEvents.onAfterSelected = 67 ; TreeEventHandler
-    $gTreeViewEvents.onBeforeExpanded = 68 ; TreeEventHandler
-    $gTreeViewEvents.onAfterExpanded = 69 ; TreeEventHandler
-    $gTreeViewEvents.onBeforeCollapsed = 70 ; TreeEventHandler
-    $gTreeViewEvents.onAfterCollapsed = 71 ; TreeEventHandler
+    $gTreeViewEvents.onItemDoubleClick = 64
+    $gTreeViewEvents.onBeforeChecked = 65 ; TreeEventHandler
+    $gTreeViewEvents.onAfterChecked = 66 ; TreeEventHandler
+    $gTreeViewEvents.onBeforeSelected = 67 ; TreeEventHandler
+    $gTreeViewEvents.onAfterSelected = 68 ; TreeEventHandler
+    $gTreeViewEvents.onBeforeExpanded = 69 ; TreeEventHandler
+    $gTreeViewEvents.onAfterExpanded = 70 ; TreeEventHandler
+    $gTreeViewEvents.onBeforeCollapsed = 71 ; TreeEventHandler
+    $gTreeViewEvents.onAfterCollapsed = 72 ; TreeEventHandler
 
     Global $gTreeViewPropss[]
     $gTreeViewPropss.noLine = 117 ; type: bool
@@ -299,10 +301,10 @@ Global Enum $maBaseMenu = 1, $maSubMenu, $maSeparator
     $gTreeViewPropss.selectedNode = 127 ; type: ptr
 
     Global $gMenuEvents[]
-    $gMenuEvents.onClick = 72 ; MenuEventHandler
-    $gMenuEvents.onPopup = 73 ; MenuEventHandler
-    $gMenuEvents.onCollapse = 74 ; MenuEventHandler
-    $gMenuEvents.onFocus = 75 ; MenuEventHandler
+    $gMenuEvents.onClick = 73 ; MenuEventHandler
+    $gMenuEvents.onPopup = 74 ; MenuEventHandler
+    $gMenuEvents.onCollapse = 75 ; MenuEventHandler
+    $gMenuEvents.onFocus = 76 ; MenuEventHandler
 
     Global $gMenuProps[]
     $gMenuProps.cmWidth = 128 ; type: int
