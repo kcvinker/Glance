@@ -197,6 +197,12 @@ proc setProperty(this: Control, propIndex: int, pValue: pointer){.exportc:"setPr
     of int(TreeViewProps.low) .. int(TreeViewProps.high):
         setTreeViewProps(cast[TreeView](this), cast[TreeViewProps](propIndex), pValue)
 
+    of int(ContextMenuProps.low) .. int(ContextMenuProps.high):
+        if this.mContextMenu != nil:
+            setContextMenuProps(this.mContextMenu, cast[ContextMenuProps](propIndex), pValue)
+        else:
+            raise newException(Exception, "No context menu assaigned for this control")
+
     else: discard
 
 proc getProperty(this: Control, propIndex: int, pValue: pointer) {.exportc:"getProperty", stdcall, dynlib.} =
@@ -245,6 +251,12 @@ proc getProperty(this: Control, propIndex: int, pValue: pointer) {.exportc:"getP
 
     of int(TreeViewProps.low) .. int(TreeViewProps.high):
         getTreeViewProps(cast[TreeView](this), cast[TreeViewProps](propIndex), pValue)
+
+    of int(ContextMenuProps.low) .. int(ContextMenuProps.high):
+        if this.mContextMenu != nil:
+            getContextMenuProps(this.mContextMenu, cast[ContextMenuProps](propIndex), pValue)
+        else:
+            raise newException(Exception, "No context menu assaigned for this control")
 
     else: discard
 

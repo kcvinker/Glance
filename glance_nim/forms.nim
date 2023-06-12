@@ -357,6 +357,14 @@ proc setMenuEvents(this: Form, menuName: LPCWSTR, eventIndex: int, funcPtr: Menu
         of meMiCollapse: menu.onCollapse = funcPtr
         of meMiFocus: menu.onFocus = funcPtr
 
+proc setMainMenuProps(this: Form, menuName: LPCWSTR, evtIndex: int,
+                    pValue: pointer) {.exportc:"setMainMenuProps", stdcall, dynlib.} =
+
+    if evtIndex <= int(MenuItemProps.low) and evtIndex >= int(MenuItemProps.high):
+        var menuText = toWstring(menuName)
+        var menu = this.getMenuFromText(menuText)
+        if menu != nil: menu.setMenuItemProps(cast[MenuItemProps](evtIndex), pValue)
+
 
 
 

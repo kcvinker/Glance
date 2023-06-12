@@ -75,9 +75,11 @@ proc `font=`*(this: Control, value: Font) {.inline.} =
 
 proc font*(this: Control): Font {.inline.} = return this.mFont
 
-proc `text=`*(this: Control, value: LPCWSTR) {.inline.} =
-    this.mText = toWstring(value)
-    if this.mIsCreated: discard
+proc `text=`*(this: Control, value: ref Wstring) {.inline.} =
+    # this.mText = toWstring(value)
+    this.mText = value[]
+    if this.mIsCreated and this.mHasText:
+        SetWindowTextW(this.mHandle, this.mText[0].unsafeAddr)
 
 proc text*(this: Control): Wstring {.inline.} = return this.mText
 
@@ -233,6 +235,10 @@ proc getControlName(this: Control) : LPCWSTR =
         result = toWcharPtr((cast[Form](this)).mName)
     else: discard
 
+proc setCtrlTextProperty(this: Control, txt: ptr LPCWSTR) =
+    var wst = toWstring2(txt[])
+    this.text = wst
+
 
 proc getCtrlHwnd(this: Control) : HWND {.exportc:"getCtrlHwnd", stdcall, dynlib.} = this.mHandle
 
@@ -261,7 +267,7 @@ proc setCtrlEvents(this: Control, evt: ControlEvents, funcPtr: EventHandler) =
 
 proc setCtrlProps(this: Control, prop: ControlProps, value: pointer) =
     case prop
-    of cpText: this.text = cast[LPWCHAR](value)
+    of cpText: this.setCtrlTextProperty(cast[ptr LPCWSTR](value))
     of cpBackColor: this.backColor = cast[ref uint](value)[]
 
     of cpForeColor: this.foreColor = cast[ref uint](value)[]

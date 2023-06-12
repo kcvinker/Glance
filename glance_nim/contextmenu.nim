@@ -120,8 +120,6 @@ proc newContextMenu*(parent: Control, menuItems: LPCWSTR = nil): ContextMenu {.e
             result.setContextMenuItem(name)
 
 
-
-
 proc addContextMenuItem(this: ContextMenu, item: LPCWSTR){.exportc:"addContextMenuItem", stdcall, dynlib.} =
     var itemTxt = toWstring2(item)
     this.setContextMenuItem(itemTxt)
@@ -162,5 +160,19 @@ proc setContextMenuEvents(this: Control, menuName: LPCWSTR, eventIndex: int, fun
         of meMiFocus: menu.onFocus = funcPtr
 
 
+proc setContextMenuProps(this: ContextMenu, prop: ContextMenuProps, pValue: pointer) =
+    case prop
+    of cmWidth: this.mWidth = (cast[ref int32](pValue))[]
+    of cmHeight: this.mHeight = (cast[ref int32](pValue))[]
+    of cmFont: this.mFont = (cast[ref Font](pValue))[]
+    else: discard
+
+proc getContextMenuProps(this: ContextMenu, prop: ContextMenuProps, pValue: pointer) =
+    case prop
+    of cmWidth: (cast[ref int32](pValue))[] = this.mWidth
+    of cmHeight: (cast[ref int32](pValue))[] = this.mHeight
+    of cmFont: (cast[ref Font](pValue))[] = this.mFont
+    of cmParent: (cast[ref Control](pValue))[] = this.mParent
+    of cmHmenu: (cast[ref HMENU](pValue))[] = this.mHmenu
 
 
