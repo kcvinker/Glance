@@ -52,7 +52,7 @@ type
         tkbValueChanged = int(TextBoxEvents.high) + 1, tkbDragging, tkbDragged
 
     TreeViewEvents = enum
-        tvBeginEdit = int(TrackBarEvents.high) + 1, tvEndEdit, tvNodeDeleted, tvBeforeChecked, tvAfterChecked,
+        tvBeginEdit = int(TrackBarEvents.high) + 1, tvEndEdit, tvNodeDeleted, tvItemDblClicked, tvBeforeChecked, tvAfterChecked,
         tvBeforeSelected, tvAfterSelected, tvBeforeExpanded, tvAfterExpanded, tvBeforeCollapsed, tvAfterCollapsed
 
     MenuEvents = enum
@@ -587,7 +587,7 @@ type
         newNodes: seq[NewNodeInfo]
         mNodes: seq[TreeNode]
         # Events
-        onBeginEdit, onEndEdit, onNodeDeleted : EventHandler
+        onBeginEdit, onEndEdit, onNodeDeleted, onNodeDoubleClicked : EventHandler
         onBeforeChecked, onAfterChecked, onBeforeSelected: TreeEventHandler
         onAfterSelected, onBeforeExpanded, onAfterExpanded: TreeEventHandler
         onBeforeCollapsed, onAfterCollapsed: TreeEventHandler

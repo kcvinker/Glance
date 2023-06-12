@@ -514,6 +514,7 @@ proc setTreeViewEvents(this: TreeView, evtIndex: TreeViewEvents, funcPtr: EventH
     of tvBeginEdit: this.onBeginEdit = funcPtr
     of tvEndEdit: this.onEndEdit = funcPtr
     of tvNodeDeleted: this.onNodeDeleted = funcPtr
+    of tvItemDblClicked: this.onNodeDoubleClicked = funcPtr
     of tvBeforeChecked: this.onBeforeChecked = cast[TreeEventHandler](funcPtr)
     of tvAfterChecked: this.onAfterChecked = cast[TreeEventHandler](funcPtr)
     of tvBeforeSelected: this.onBeforeSelected = cast[TreeEventHandler](funcPtr)
