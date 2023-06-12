@@ -83,7 +83,7 @@ proc registerWinClass(this: Form) =
     appData.screenHeight = GetSystemMetrics(1)
     this.hInstance = GetModuleHandleW(nil)
 
-    this.mClassName = "Glance_Window_With_Nim_And_AoutoIt"
+    this.mClassName = "Glance Window by @kcvinker"
     this.mBackColor = newColor(0xF0F0F0)
 
     var wcex : WNDCLASSEXW
@@ -229,8 +229,9 @@ proc newForm(title: LPCWSTR, width: int32, height: int32,
     result.mName = "Form_" & $appData.formCount
     appData.formCount += 1
     result.onMouseUp = frmOnMouseUp
-    echo "form is inited"
 
+
+method createHandle*(this: Form) = discard
 
 proc createFormHandle(this: Form): HWND {.exportc:"frmCreateHwnd", stdcall, dynlib.} =
     this.setFormStyles()
