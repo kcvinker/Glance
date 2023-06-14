@@ -28,7 +28,6 @@ include treeview
 const
     auStrLimit = 65536
 
-# var typeDic = {"byte": byte, "bool": bool, "char": char, "dword": DWORD}.toTable #Table[string, typedesc]
 
 
 # Convert wchar ptr to wchar array. Not null terminated
@@ -61,17 +60,6 @@ proc createControlHandles(this: Form) =
             if not ctl.mIsCreated: ctl.createHandle()
 
 
-
-# Creates all control hwnds and returns the count
-#proc createControlHwnds(this: Form): int {.exportc:"createControlHwnds", stdcall, dynlib.} =
-#    this.tmpHwndSeq = @[]
-#    if this.controls.len > 0:
-#        for ctl in this.controls:
-#            if not ctl.mIsCreated:
-#                ctl.createHandle()
-#                this.tmpHwndSeq.add(ctl.mHandle)
-#                result += 1
-
 proc display(this: Form ) {.exportc:"frmDisplay", stdcall, dynlib.} =
     this.createControlHandles()
     ShowWindow(this.mHandle, 5)
@@ -95,8 +83,6 @@ proc clearHwndSeq(this: Form) {.exportc:"clearHwndSeq", stdcall, dynlib.} = this
 proc makeTable[T, U](key: typedesc[T], value: typedesc[U]) : Table[T, U] =
     var tp = Table[key, value]
     return tp
-
-
 
 
 proc setEventHandler(this: Control, evtIndex: int, funcPtr: EventHandler) {.exportc:"setEventHandler", stdcall, dynlib.} =
@@ -149,6 +135,7 @@ proc setEventHandler(this: Control, evtIndex: int, funcPtr: EventHandler) {.expo
         this.mContextMenu.onMenuClose = cast[ContextMenuEventHandler](funcPtr)
 
     else: discard
+
 
 proc setProperty(this: Control, propIndex: int, pValue: pointer){.exportc:"setProperty", stdcall, dynlib.} =
     case propIndex
@@ -204,6 +191,7 @@ proc setProperty(this: Control, propIndex: int, pValue: pointer){.exportc:"setPr
             raise newException(Exception, "No context menu assaigned for this control")
 
     else: discard
+
 
 proc getProperty(this: Control, propIndex: int, pValue: pointer) {.exportc:"getProperty", stdcall, dynlib.} =
     case propIndex
@@ -262,7 +250,9 @@ proc getProperty(this: Control, propIndex: int, pValue: pointer) {.exportc:"getP
 
 
 
-
+proc test(a: int) : int {.exportc:"luatest", stdcall, dynlib.} =
+    echo "we got ", $a, " from lua"
+    result = 12
 
 
 

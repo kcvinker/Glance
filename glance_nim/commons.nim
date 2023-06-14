@@ -95,22 +95,16 @@ proc newMenuBar(parent: Form, menuNames: LPWSTR ) : MenuBar {.exportc:"newMenuBa
     if menuNames != nil:
         try:
             var rawNames = toWstring2(menuNames)
-            #echo "mn ", rawNames[].repr
-            var nameSeq = splitWstring2(rawNames, pipeChar)        
+            var nameSeq = splitWstring2(rawNames, pipeChar)
             for i, name in nameSeq:
-                #var menuname: Wstring = nameSeq[i]
-                #echo "mn ", menuname.repr
                 result.addMenu(name)
-            #echo "tfix_", $nameSeq.len
         except CatchableError as ex:
           echo "An exception occurred:", ex.msg
           echo "Exception type:", ex.type
-          #echo "Stack trace:", ex.traceback
-        finally:
-          echo "Execution completed"
 
 
-        
+
+
 
 
 
@@ -144,16 +138,6 @@ proc insertMenuInternal(this: MenuItem, parentHmenu: HMENU) =
     InsertMenuItemW(parentHmenu, UINT(this.mIndex), 1, mii.unsafeAddr)
     this.mIsCreated = true
 
-# proc findMenuItem(this: MenuItem, txt: Wstring): MenuItem =
-#     if this.mText == txt:
-#         return this
-#     else:
-#         if len(this.mMenus) > 0:
-#             for menu in this.mMenus: findMenuItem(menu, txt)
-
-
-
-
 
 proc create(this: MenuItem) =
     case this.mType
@@ -179,6 +163,7 @@ proc addMenu*(this: MenuBar, txt: ref Wstring, txtColor: uint = 0x000000): MenuI
     this.mMenuCount += 1
     this.mMenus[result.mId] = result
     this.mParent.mMenuItemDict[result.mId] = result
+
 
 proc addMenu*(this: MenuItem, txt: LPCWSTR, txtColor: uint = 0x000000, sm: bool = true) : MenuItem {.discardable.} =
     if this.mType == mtMenuItem:
@@ -210,7 +195,6 @@ proc glfAddMenuItem1(this: Form, parentMenu: LPCWSTR, menuTxt: LPCWSTR, fgColor:
                 break
 
 
-
 proc glfAddMenuItem2(this: Form, parentMenuId: int32, menuTxt: LPCWSTR, fgColor: uint,
                         menuid: var int32): MenuItem {.exportc:"glfAddMenuItem2", stdcall, dynlib.} =
     if len(this.mMenuItemDict) > 0:
@@ -220,8 +204,6 @@ proc glfAddMenuItem2(this: Form, parentMenuId: int32, menuTxt: LPCWSTR, fgColor:
             result = menu.addMenu(menuText[0].addr, fgColor, false)
             this.mMenuItemDict[result.mId] = result
             menuid = result.mId
-
-
 
 
 proc addSeparator*(this: MenuItem) =
@@ -255,6 +237,10 @@ proc `foreColor=`*(this: MenuItem, value: Color) =
     this.mFgColor = value
     if this.mType == mtBaseMenu: InvalidateRect(this.mHmenu, nil, 0)
 
+proc `text=`(this: MenuItem, value: ref Wstring) = this.mText = value[]
+proc text(this: MenuItem): Wstring = this.mText
+
+
 
 proc enabled*(this: MenuItem): bool = this.mIsEnabled
 
@@ -270,6 +256,11 @@ proc `font=`*(this: MenuItem, value: Font) =
 
 
 
-
+proc setMenuItemProps(this: MenuItem, prop: MenuItemProps, value: pointer) =
+    case prop
+    of miForeColor: this.foreColor = (cast[ref uint](value))[]
+    of miFont: this.font = (cast[ref Font](value))[]
+    of miText: this.text = (cast[ref Wstring](value))
+    else: discard
 
 

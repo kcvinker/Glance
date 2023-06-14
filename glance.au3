@@ -6,10 +6,10 @@ Global $hDll = 0
 Local $gcList[1] = ["dummy"]
 Local $fnPtrList[0]
 
-func glf_Start()	
+func glf_Start()
 	$hDll = DllOpen("glance.dll")
 	OnAutoItExitRegister("OnScriptExit")
-	ConsoleWrite("dll status " & $hDll & @CRLF)
+	; ConsoleWrite("dll status " & $hDll & @CRLF)
 EndFunc
 
 Global const $MOUSEBTN_NONE = 0
@@ -25,305 +25,290 @@ Global Enum Step 100 $fwLight = 300, $fwNormal, $fwMedium, $fwSemiBold, $fwBold,
 Global Enum $ctForm = 1, $ctButton, $ctCalendar, $ctCheckBox, $ctComboBox, $ctDateTimePicker, $ctGroupBox, $ctLabel, _
 	   $ctListBox, $ctListView, $ctNumberPicker, $ctProgressBar, $ctRadioButton, $ctTextBox, $ctTrackBar, $ctTreeView
 
+Local Enum $mnuMainMenu = 1, $mnuCMenu
+
 Global Enum $maBaseMenu = 1, $maSubMenu, $maSeparator
 
 ; region Prop & Event map
-
+func setEventsAndPropsValues(Byref $map)
 	; All controls are inherited from Contro class. So it can use control props.
 	; Menu is a control. So use menu props for them.
-	Global $gControlProps[]
-    $gControlProps.kind = 1 ; type: int, readonly
-    $gControlProps.width = 2 ; type: int
-    $gControlProps.height = 3 ; type: int
-    $gControlProps.xpos = 4 ; type: int
-    $gControlProps.ypos = 5 ; type: int
-    $gControlProps.ctlID = 6 ; type: int
-    $gControlProps.backColor = 7 ; type: uint
-    $gControlProps.foreColor = 8 ; type: uint
-    $gControlProps.text = 9 ; type: wstr
-    $gControlProps.name = 10 ; type: str, readonly
-    $gControlProps.handle = 11 ; type: hwnd, readonly
-    $gControlProps.contextMenu = 12 ; type: ptr
-    $gControlProps.font = 13 ; type: ptr
-    $gControlProps.parent = 14 ; type: ptr, readonly
+	if $map.type >=$ctForm and $map.type <= $ctTreeView Then
+		$map.kind = 1 ; type: int, readonly
+		$map.width = 2 ; type: int
+		$map.height = 3 ; type: int
+		$map.xpos = 4 ; type: int
+		$map.ypos = 5 ; type: int
+		$map.ctlID = 6 ; type: int
+		$map.backColor = 7 ; type: uint
+		$map.foreColor = 8 ; type: uint
+		$map.text = 9 ; type: wstr
+		$map.name = 10 ; type: str, readonly
+		$map.handle = 11 ; type: hwnd, readonly
+		$map.contextMenu = 12 ; type: ptr
+		$map.font = 13 ; type: ptr
+		$map.parent = 14 ; type: ptr, readonly
 
-	; Badic function type for an event is EventHandler. The signature for it is "func(Sender, EventArgs)".
-	; Sender is the control or component which sends the event. EventArgs is the extra arguments related to that event.
-	; All other function types are commented out to the right side of their event names.
-	; Signature for them are...
-		; 1. KeyEventHandler = func(Sender, KeyEventArgs)
-		; 2. KeyPressEventHandler = func(Sender, KeyPressEventArgs)
-		; 3. MouseEventHandler = func(Sender, MouseEventArgs)
-		; 4. PaintEventHandler = func(Sender, PaintEventArgs)
-		; 5. SizeEventHandler = func(Sender, SizeEventArgs)
-		; 6. TreeEventHandler = func(Sender, TreeEventArgs)
-		; 7. MenuEventHandler = func(menu, EventArgs)
+		; Badic function type for an event is EventHandler. The signature for it is "func(Sender, EventArgs)".
+		; Sender is the control or component which sends the event. EventArgs is the extra arguments related to that event.
+		; All other function types are commented out to the right side of their event names.
+		; Signature for them are...
+			; 1. KeyEventHandler = func(Sender, KeyEventArgs)
+			; 2. KeyPressEventHandler = func(Sender, KeyPressEventArgs)
+			; 3. MouseEventHandler = func(Sender, MouseEventArgs)
+			; 4. PaintEventHandler = func(Sender, PaintEventArgs)
+			; 5. SizeEventHandler = func(Sender, SizeEventArgs)
+			; 6. TreeEventHandler = func(Sender, TreeEventArgs)
+			; 7. MenuEventHandler = func(menu, EventArgs)
 
-    Global $gControlEvents[]
-    $gControlEvents.onClick = 1
-    $gControlEvents.onDoubleClick = 2
-    $gControlEvents.onGotFocus = 3
-    $gControlEvents.onLostFocus = 4
-    $gControlEvents.onKeyDown = 5 ; KeyEventHandler
-    $gControlEvents.onKeyPress = 6 ; KeyPressEventHandler
-    $gControlEvents.onKeyUp = 7 ; KeyEventHandler
-    $gControlEvents.onMouseDown = 8 ; MouseEventHandler
-    $gControlEvents.onMouseEnter = 9
-    $gControlEvents.onMouseHover = 10
-    $gControlEvents.onMouseLeave = 11
-    $gControlEvents.onMouseMove = 12 ; MouseEventHandler
-    $gControlEvents.onMouseUp = 13 ; MouseEventHandler
-    $gControlEvents.onMouseWheel = 14 ; MouseEventHandler
-    $gControlEvents.onRightClick = 15
-    $gControlEvents.onRightMouseDown = 16 ; MouseEventHandler
-    $gControlEvents.onRightMouseUp = 17 ; MouseEventHandler
-    $gControlEvents.onPaint = 18 ; PaintEventHandler
-    $gControlEvents.onCmenuShown = 19
-    $gControlEvents.onCmenuClose = 20
 
-    Global $gFormProps[]
-    $gFormProps.startPos = 15 ; type: int
-    $gFormProps.formState = 16 ; type: int
-    $gFormProps.formStyle = 17 ; type: int
-    $gFormProps.topMost = 18 ; type: bool
-    $gFormProps.maximizeBox = 19 ; type: bool
-    $gFormProps.minimizeBox = 20 ; type: bool
+		$map.onClick = 1
+		$map.onDoubleClick = 2
+		$map.onGotFocus = 3
+		$map.onLostFocus = 4
+		$map.onKeyDown = 5 ; KeyEventHandler
+		$map.onKeyPress = 6 ; KeyPressEventHandler
+		$map.onKeyUp = 7 ; KeyEventHandler
+		$map.onMouseDown = 8 ; MouseEventHandler
+		$map.onMouseEnter = 9
+		$map.onMouseHover = 10
+		$map.onMouseLeave = 11
+		$map.onMouseMove = 12 ; MouseEventHandler
+		$map.onMouseUp = 13 ; MouseEventHandler
+		$map.onMouseWheel = 14 ; MouseEventHandler
+		$map.onRightClick = 15
+		$map.onRightMouseDown = 16 ; MouseEventHandler
+		$map.onRightMouseUp = 17 ; MouseEventHandler
+		$map.onPaint = 18 ; PaintEventHandler
+		$map.onCmenuShown = 19
+		$map.onCmenuClose = 20
+	EndIf
 
-    Global $gFormEvents[]
-    $gFormEvents.onLoad = 21
-    $gFormEvents.onMaximize = 22
-    $gFormEvents.onMinimize = 23
-    $gFormEvents.onRestore = 24
-    $gFormEvents.onClosing = 25
-    $gFormEvents.onActivate = 26
-    $gFormEvents.onDeActivate = 27
-    $gFormEvents.onMoving = 28
-    $gFormEvents.onMoved = 29
-    $gFormEvents.onSizing = 30 ; SizeEventHandler
-    $gFormEvents.onSized = 31 ; SizeEventHandler
+	Switch $map.type
+		case $ctForm
+			$map.startPos = 15 ; type: int
+			$map.formState = 16 ; type: int
+			$map.formStyle = 17 ; type: int
+			$map.topMost = 18 ; type: bool
+			$map.maximizeBox = 19 ; type: bool
+			$map.minimizeBox = 20 ; type: bool
 
-    Global $gCalendarProps[]
-    $gCalendarProps.value = 21 ; type: ptr
-    $gCalendarProps.viewMode = 22 ; type: int
-    $gCalendarProps.showWeekNumber = 23 ; type: bool
-    $gCalendarProps.noTodayCircle = 24 ; type: bool
-    $gCalendarProps.noToday = 25 ; type: bool
-    $gCalendarProps.noTrailingDates = 26 ; type: bool
-    $gCalendarProps.shortDateNames = 27 ; type: bool
+			$map.onLoad = 21
+			$map.onMaximize = 22
+			$map.onMinimize = 23
+			$map.onRestore = 24
+			$map.onClosing = 25
+			$map.onActivate = 26
+			$map.onDeActivate = 27
+			$map.onMoving = 28
+			$map.onMoved = 29
+			$map.onSizing = 30 ; SizeEventHandler
+			$map.onSized = 31 ; SizeEventHandler
+		case $ctCalendar
+			$map.value = 21 ; type: ptr
+			$map.viewMode = 22 ; type: int
+			$map.showWeekNumber = 23 ; type: bool
+			$map.noTodayCircle = 24 ; type: bool
+			$map.noToday = 25 ; type: bool
+			$map.noTrailingDates = 26 ; type: bool
+			$map.shortDateNames = 27 ; type: bool
 
-    Global $gCalendarEvents[]
-    $gCalendarEvents.onSelectionCommitted = 32
-    $gCalendarEvents.onValueChanged = 33
-    $gCalendarEvents.onViewChanged = 34
+			$map.onSelectionCommitted = 32
+			$map.onValueChanged = 33
+			$map.onViewChanged = 34
+		case $ctCheckBox
+			$map.checked = 28 ; type: bool
+			$map.onCheckedChanged = 35
+		case $ctComboBox
+			$map.hasInput = 29 ; type: bool
+			$map.selectedIndex = 30 ; type: int
+			$map.selectedItem = 31 ; type: wstr
 
-    Global $gCheckBoxProps[]
-    $gCheckBoxProps.checked = 28 ; type: bool
+			$map.onSelectionChanged = 36
+			$map.onTextChanged = 37
+			$map.onTextUpdated = 38
+			$map.onListOpened = 39
+			$map.onListClosed = 40
+			$map.onSelectionCommitted = 41
+			$map.onSelectionCancelled = 42
+		case $ctDateTimePicker
+			$map.formatString = 32 ; type: wstr
+			$map.value = 33 ; type: ptr
+			$map.format = 34 ; type: int
+			$map.rightAlign = 35 ; type: bool
+			$map.noToday = 36 ; type: bool
+			$map.showUpdown = 37 ; type: bool
+			$map.showWeekNumber = 38 ; type: bool
+			$map.noTodayCircle = 39  ; type: bool
+			$map.noTrailingDates = 40 ; type: bool
+			$map.shortDateNames = 41 ; type: bool
+			$map.fourDigitYear = 42 ; type: bool
 
-    Global $gCheckBoxEvents[]
-    $gCheckBoxEvents.onCheckedChanged = 35
+			$map.onValueChanged = 43
+			$map.onCalendarOpened = 44
+			$map.onCalendarClosed = 45
+			$map.onTextChanged = 46
+		case $ctLabel
+			$map.autoSize = 43 ; type: bool
+			$map.multiLine = 44 ; type: bool
+			$map.textAlign = 45 ; type: int
+			$map.borderStyle = 46 ; type: int
 
-    Global $gComboProps[]
-    $gComboProps.hasInput = 29 ; type: bool
-    $gComboProps.selectedIndex = 30 ; type: int
-    $gComboProps.selectedItem = 31 ; type: wstr
+			$map.onSelectionChanged = 47
+			$map.onSelectionCancelled = 48
+		case $ctListBox
+			$map.hotIndex = 47 ; type: int
+			$map.selectedIndex = 48 ; type: int
+			$map.horizontalScroll = 49 ; type: bool
+			$map.verticalScroll = 50 ; type: bool
+			$map.multiSelection = 51 ; type: bool
+			$map.hotItem = 52 ; type: wstr
+			$map.selectedItem = 53 ; type: wstr
 
-    Global $gComboEvents[]
-    $gComboEvents.onSelectionChanged = 36
-    $gComboEvents.onTextChanged = 37
-    $gComboEvents.onTextUpdated = 38
-    $gComboEvents.onListOpened = 39
-    $gComboEvents.onListClosed = 40
-    $gComboEvents.onSelectionCommitted = 41
-    $gComboEvents.onSelectionCancelled = 42
+			$map.onCheckedChanged = 49
+			$map.onSelectionChanged = 50
+			$map.onItemDoubleClicked = 51
+			$map.onItemClicked = 52
+			$map.onItemHover = 53
+		case $ctListView
+			$map.selectedIndex = 54 ; type: int
+			$map.selectedSubIndex = 55 ; type: int
+			$map.headerHeight = 56 ; type: int
+			$map.editLabel = 57 ; type: bool
+			$map.hideSelection = 58 ; type: bool
+			$map.multiSelection = 59 ; type: bool
+			$map.hasCheckBox = 60 ; type: bool
+			$map.fullRowSelection = 61 ; type: bool
+			$map.showGrid = 62 ; type: bool
+			$map.oneClickActivate = 63 ; type: bool
+			$map.hotTrackSelection = 64 ; type: bool
+			$map.headerClickable = 65 ; type: bool
+			$map.checked = 66 ; type: bool
+			$map.checkBoxLast = 67 ; type: bool
+			$map.viewStyle = 68 ; type: int
+			$map.headerBackColor = 69 ; type: uint
+			$map.headerForeColor = 70 ; type: uint
+			$map.selectedItem = 71 ; type: wstr
+		case $ctNumberPicker
+			$map.onValueChanged = 54
 
-    Global $gDTPProps[]
-    $gDTPProps.formatString = 32 ; type: wstr
-    $gDTPProps.value = 33 ; type: ptr
-    $gDTPProps.format = 34 ; type: int
-    $gDTPProps.rightAlign = 35 ; type: bool
-    $gDTPProps.noToday = 36 ; type: bool
-    $gDTPProps.showUpdown = 37 ; type: bool
-    $gDTPProps.showWeekNumber = 38 ; type: bool
-    $gDTPProps.noTodayCircle = 39  ; type: bool
-    $gDTPProps.noTrailingDates = 40 ; type: bool
-    $gDTPProps.shortDateNames = 41 ; type: bool
-    $gDTPProps.fourDigitYear = 42 ; type: bool
+			$map.value         = 72 ; type: float
+			$map.stepp         = 73 ; type: float
+			$map.minRange      = 74 ; type: float
+			$map.maxRange      = 75 ; type: float
+			$map.buttonLeft    = 76 ; type: bool
+			$map.autoRotate    = 77 ; type: bool
+			$map.hideCaret     = 78 ; type: bool
+			$map.textAlign     = 79 ; type: int
+			$map.decimalDigits = 80 ; type: int
+		case $ctProgressBar
+			$map.onProgressChanged = 55
 
-    Global $gDTPevents[]
-    $gDTPevents.onValueChanged = 43
-    $gDTPevents.onCalendarOpened = 44
-    $gDTPevents.onCalendarClosed = 45
-    $gDTPevents.onTextChanged = 46
+			$map.value = 81 ;type: int
+			$map.stepp = 82 ;type: int
+			$map.marqueeSpeed = 83 ;type: int
+			$map.style = 84 ;type: int
+			$map.state = 85 ;type: int
+			$map.showPercentage = 86 ;type: bool
+		case $ctRadioButton
+		    $map.onCheckedChanged = 56
+		    $map.checked = 87 ; type: bool
+		case $ctTextBox
+			$map.onTextChanged = 57
 
-    Global $gLabelProps[]
-    $gLabelProps.autoSize = 43 ; type: bool
-    $gLabelProps.multiLine = 44 ; type: bool
-    $gLabelProps.textAlign = 45 ; type: int
-    $gLabelProps.borderStyle = 46 ; type: int
+			$map.textAlign = 88 ; type: int
+			$map.textCase = 89 ; type: int
+			$map.textType = 90 ; type: int
+			$map.multiLine = 91 ; type: bool
+			$map.hideSelection = 92 ; type: bool
+			$map.readOnly = 93 ; type: bool
+			$map.cueBanner = 94 ; type: wstr
+		case $ctTrackBar
+			$map.onValueChanged = 58
+			$map.onDragging = 59
+			$map.onDragged = 60
 
-    Global $gListBoxEvents[]
-    $gListBoxEvents.onSelectionChanged = 47
-    $gListBoxEvents.onSelectionCancelled = 48
+			$map.ticColor = 95 ; type: int
+			$map.channelColor = 96 ; type: uint
+			$map.selectionColor = 97 ; type: uint
+			$map.channelStyle = 98 ; type: int
+			$map.trackChange = 99 ; type: int
+			$map.vertical = 100 ; type: bool
+			$map.reversed = 101 ; type: bool
+			$map.noTics = 102 ; type: bool
+			$map.showSelRange = 103 ; type: bool
+			$map.toolTipp = 104 ; type: bool
+			$map.customDraw = 105 ; type: bool
+			$map.freeMove = 106 ; type: bool
+			$map.noThumb = 107 ; type: bool
+			$map.ticPosition = 108 ; type: int
+			$map.ticWidth = 109 ; type: int
+			$map.minRange = 110 ; type: float
+			$map.maxRange = 111 ; type: float
+			$map.frequency = 112 ; type: float
+			$map.pageSize = 113 ; type: int
+			$map.lineSize = 114 ; type: int
+			$map.ticLength = 115 ; type: int
+			$map.value = 116 ; type: int
+		case $ctTreeView
+			$map.onBeginEdit = 61
+			$map.onEndEdit = 62
+			$map.onNodeDeleted = 63
+			$map.onItemDoubleClick = 64
+			$map.onBeforeChecked = 65 ; TreeEventHandler
+			$map.onAfterChecked = 66 ; TreeEventHandler
+			$map.onBeforeSelected = 67 ; TreeEventHandler
+			$map.onAfterSelected = 68 ; TreeEventHandler
+			$map.onBeforeExpanded = 69 ; TreeEventHandler
+			$map.onAfterExpanded = 70 ; TreeEventHandler
+			$map.onBeforeCollapsed = 71 ; TreeEventHandler
+			$map.onAfterCollapsed = 72 ; TreeEventHandler
 
-    Global $gListBoxProps[]
-    $gListBoxProps.hotIndex = 47 ; type: int
-    $gListBoxProps.selectedIndex = 48 ; type: int
-    $gListBoxProps.horizontalScroll = 49 ; type: bool
-    $gListBoxProps.verticalScroll = 50 ; type: bool
-    $gListBoxProps.multiSelection = 51 ; type: bool
-    $gListBoxProps.hotItem = 52 ; type: wstr
-    $gListBoxProps.selectedItem = 53 ; type: wstr
+			$map.noLine = 117 ; type: bool
+			$map.noButton = 118 ; type: bool
+			$map.hasCheckBox = 119 ; type: bool
+			$map.fullRowSelect = 120 ; type: bool
+			$map.isEditable = 121 ; type: bool
+			$map.showSelection = 122 ; type: bool
+			$map.hotTrack = 123 ; type: bool
+			$map.nodeCount = 124 ; type: int
+			$map.uniqNodeID = 125 ; type: int, readonly
+			$map.lineColor = 126 ; type: uint
+			$map.selectedNode = 127 ; type: ptr
+	EndSwitch
+EndFunc
 
-    Global $gListViewEvents[]
-    $gListViewEvents.onCheckedChanged = 49
-    $gListViewEvents.onSelectionChanged = 50
-    $gListViewEvents.onItemDoubleClicked = 51
-    $gListViewEvents.onItemClicked = 52
-    $gListViewEvents.onItemHover = 53
+Func setMenuEventsAndPropsValues(ByRef $map, $type)
+	$map.onMenuClick = 73 ; MenuEventHandler
+	$map.onMenuPopup = 74 ; MenuEventHandler
+	$map.onMenuCollapse = 75 ; MenuEventHandler
+	$map.onMenuFocus = 76 ; MenuEventHandler
 
-    Global $gListViewProps[]
-    $gListViewProps.selectedIndex = 54 ; type: int
-    $gListViewProps.selectedSubIndex = 55 ; type: int
-    $gListViewProps.headerHeight = 56 ; type: int
-    $gListViewProps.editLabel = 57 ; type: bool
-    $gListViewProps.hideSelection = 58 ; type: bool
-    $gListViewProps.multiSelection = 59 ; type: bool
-    $gListViewProps.hasCheckBox = 60 ; type: bool
-    $gListViewProps.fullRowSelection = 61 ; type: bool
-    $gListViewProps.showGrid = 62 ; type: bool
-    $gListViewProps.oneClickActivate = 63 ; type: bool
-    $gListViewProps.hotTrackSelection = 64 ; type: bool
-    $gListViewProps.headerClickable = 65 ; type: bool
-    $gListViewProps.checked = 66 ; type: bool
-    $gListViewProps.checkBoxLast = 67 ; type: bool
-    $gListViewProps.viewStyle = 68 ; type: int
-    $gListViewProps.headerBackColor = 69 ; type: uint
-    $gListViewProps.headerForeColor = 70 ; type: uint
-    $gListViewProps.selectedItem = 71 ; type: wstr
+	if $type = $mnuCMenu Then
+		$map.onContextMenuShown = 77
+		$map.onContextMenuClose = 78
 
-    Global $gNumberPickerEvents[]
-    $gNumberPickerEvents.onValueChanged = 54
+		$map.contextMenuWidth = 128 ; type: int
+		$map.contextMenuHeight = 129 ; type: int
+		$map.contextMenuFont = 130 ; type: ptr
+		$map.contextMenuParent = 131 ; type: ptr
+		$map.contextMenuHmenu = 132 ; type: HMENU
+	Else
+		$map.menuBarHmenu = 133 ; type: HMENU
+		$map.menuBarFont = 134 ; type: ptr
+		$map.menuBarParent = 135 ; type: ptr
+		$map.menuBarMenuCount = 136 ; type: int
+	EndIf
+	$map.menuChildCount = 137 ; type: int
+	$map.menuIndex = 138 ; type: int
+	$map.menuType = 139 ; type: int
+	$map.menuBackColor = 140 ; type: uint
+	$map.menuForeColor = 141 ; type: uint
+	$map.menuFont = 142 ; type: ptr
+	$map.menuHmenu = 143 ; type: HMENU
+	$map.menuText = 144 ; type: wstr
 
-    Global $gNumberPickerProps[]
-    $gNumberPickerProps.value         = 72 ; type: float
-    $gNumberPickerProps.stepp         = 73 ; type: float
-    $gNumberPickerProps.minRange      = 74 ; type: float
-    $gNumberPickerProps.maxRange      = 75 ; type: float
-    $gNumberPickerProps.buttonLeft    = 76 ; type: bool
-    $gNumberPickerProps.autoRotate    = 77 ; type: bool
-    $gNumberPickerProps.hideCaret     = 78 ; type: bool
-    $gNumberPickerProps.textAlign     = 79 ; type: int
-    $gNumberPickerProps.decimalDigits = 80 ; type: int
-
-    Global $gProgressBarEvents[]
-    $gProgressBarEvents.onProgressChanged = 55
-
-    Global $gProgressBarProps[]
-    $gProgressBarProps.value = 81 ;type: int
-    $gProgressBarProps.stepp = 82 ;type: int
-    $gProgressBarProps.marqueeSpeed = 83 ;type: int
-    $gProgressBarProps.style = 84 ;type: int
-    $gProgressBarProps.state = 85 ;type: int
-    $gProgressBarProps.showPercentage = 86 ;type: bool
-
-    Global $gRadioButtonEvents[]
-    $gRadioButtonEvents.onCheckedChanged = 56
-
-    Global $gRadioButtonProps[]
-    $gRadioButtonProps.checked = 87 ; type: bool
-
-    Global $gTextBoxEvents[]
-    $gTextBoxEvents.onTextChanged = 57
-
-    Global $gTextBoxProps[]
-    $gTextBoxProps.textAlign = 88 ; type: int
-    $gTextBoxProps.textCase = 89 ; type: int
-    $gTextBoxProps.textType = 90 ; type: int
-    $gTextBoxProps.multiLine = 91 ; type: bool
-    $gTextBoxProps.hideSelection = 92 ; type: bool
-    $gTextBoxProps.readOnly = 93 ; type: bool
-    $gTextBoxProps.cueBanner = 94 ; type: wstr
-
-    Global $gTrackBarEvents[]
-    $gTrackBarEvents.onValueChanged = 58
-    $gTrackBarEvents.onDragging = 59
-    $gTrackBarEvents.onDragged = 60
-
-    Global $gTrackBarProps[]
-    $gTrackBarProps.ticColor = 95 ; type: int
-    $gTrackBarProps.channelColor = 96 ; type: uint
-    $gTrackBarProps.selectionColor = 97 ; type: uint
-    $gTrackBarProps.channelStyle = 98 ; type: int
-    $gTrackBarProps.trackChange = 99 ; type: int
-    $gTrackBarProps.vertical = 100 ; type: bool
-    $gTrackBarProps.reversed = 101 ; type: bool
-    $gTrackBarProps.noTics = 102 ; type: bool
-    $gTrackBarProps.showSelRange = 103 ; type: bool
-    $gTrackBarProps.toolTipp = 104 ; type: bool
-    $gTrackBarProps.customDraw = 105 ; type: bool
-    $gTrackBarProps.freeMove = 106 ; type: bool
-    $gTrackBarProps.noThumb = 107 ; type: bool
-    $gTrackBarProps.ticPosition = 108 ; type: int
-    $gTrackBarProps.ticWidth = 109 ; type: int
-    $gTrackBarProps.minRange = 110 ; type: float
-    $gTrackBarProps.maxRange = 111 ; type: float
-    $gTrackBarProps.frequency = 112 ; type: float
-    $gTrackBarProps.pageSize = 113 ; type: int
-    $gTrackBarProps.lineSize = 114 ; type: int
-    $gTrackBarProps.ticLength = 115 ; type: int
-    $gTrackBarProps.value = 116 ; type: int
-
-    Global $gTreeViewEvents[]
-    $gTreeViewEvents.onBeginEdit = 61
-    $gTreeViewEvents.onEndEdit = 62
-    $gTreeViewEvents.onNodeDeleted = 63
-    $gTreeViewEvents.onItemDoubleClick = 64
-    $gTreeViewEvents.onBeforeChecked = 65 ; TreeEventHandler
-    $gTreeViewEvents.onAfterChecked = 66 ; TreeEventHandler
-    $gTreeViewEvents.onBeforeSelected = 67 ; TreeEventHandler
-    $gTreeViewEvents.onAfterSelected = 68 ; TreeEventHandler
-    $gTreeViewEvents.onBeforeExpanded = 69 ; TreeEventHandler
-    $gTreeViewEvents.onAfterExpanded = 70 ; TreeEventHandler
-    $gTreeViewEvents.onBeforeCollapsed = 71 ; TreeEventHandler
-    $gTreeViewEvents.onAfterCollapsed = 72 ; TreeEventHandler
-
-    Global $gTreeViewPropss[]
-    $gTreeViewPropss.noLine = 117 ; type: bool
-    $gTreeViewPropss.noButton = 118 ; type: bool
-    $gTreeViewPropss.hasCheckBox = 119 ; type: bool
-    $gTreeViewPropss.fullRowSelect = 120 ; type: bool
-    $gTreeViewPropss.isEditable = 121 ; type: bool
-    $gTreeViewPropss.showSelection = 122 ; type: bool
-    $gTreeViewPropss.hotTrack = 123 ; type: bool
-    $gTreeViewPropss.nodeCount = 124 ; type: int
-    $gTreeViewPropss.uniqNodeID = 125 ; type: int, readonly
-    $gTreeViewPropss.lineColor = 126 ; type: uint
-    $gTreeViewPropss.selectedNode = 127 ; type: ptr
-
-    Global $gMenuEvents[]
-    $gMenuEvents.onClick = 73 ; MenuEventHandler
-    $gMenuEvents.onPopup = 74 ; MenuEventHandler
-    $gMenuEvents.onCollapse = 75 ; MenuEventHandler
-    $gMenuEvents.onFocus = 76 ; MenuEventHandler
-
-    Global $gMenuProps[]
-    $gMenuProps.cmWidth = 128 ; type: int
-    $gMenuProps.cmHeight = 129 ; type: int
-    $gMenuProps.cmFont = 130 ; type: ptr
-    $gMenuProps.cmParent = 131 ; type: ptr
-    $gMenuProps.cmHmenu = 132 ; type: HMENU
-    $gMenuProps.mbHmenu = 133 ; type: HMENU
-    $gMenuProps.mbFont = 134 ; type: ptr
-    $gMenuProps.mbParent = 135 ; type: ptr
-    $gMenuProps.mbMenuCount = 136 ; type: int
-    $gMenuProps.miChildCount = 137 ; type: int
-    $gMenuProps.miIndex = 138 ; type: int
-    $gMenuProps.miType = 139 ; type: int
-    $gMenuProps.miBackColor = 140 ; type: uint
-    $gMenuProps.miForeColor = 141 ; type: uint
-    $gMenuProps.miFont = 142 ; type: ptr
-    $gMenuProps.miHmenu = 143 ; type: HMENU
-    $gMenuProps.miText = 144 ; type: wstr
+EndFunc
 
 ; endregion x
 
@@ -467,6 +452,7 @@ Func glf_NewForm($title, $width = Default, $height = Default, $x = Default, $y =
 	if $y = Default Then $y = 0
 	if $bCreate = Default Then $bCreate = False
 	Local $fm[] ; Form map
+	$fm.type = $ctForm
 	local $res = DllCall($hDll, "ptr", "getNewForm", "wstr", $title, "int", $width, "int", $height, "int", $x, "int", $y)
 	if @error Then
 		$fm.error = @error
@@ -484,6 +470,7 @@ Func glf_NewForm($title, $width = Default, $height = Default, $x = Default, $y =
 			$fm.hwnd = 0
 		EndIf
 	EndIf
+	setEventsAndPropsValues($fm)
 	Return $fm
 EndFunc
 
@@ -591,7 +578,6 @@ Func glf_ControlSetProperty($controlMap, $propIndex, $value)
 	; return $res[3]
 EndFunc
 
-
 Func glf_ControlAddHandler(ByRef $control, $event, $funcName)
 	Local $pCallback = DllCallbackRegister($funcName, "none", "ptr;ptr")
 	Local $pfuncPtr = DllCallbackGetPtr($pCallback)
@@ -630,6 +616,7 @@ Func createCtrlInternal($parent, $nimFuncName, $paramType, $ctlType, $bCreate = 
 			$ctlMap.hwnd = 0
 		EndIf
 	EndIf
+	setEventsAndPropsValues($ctlMap)
 	return $ctlMap
 EndFunc
 
@@ -955,6 +942,7 @@ EndFunc
 Func glf_FormAddMenuBar(ByRef $frmMap, $baseMenus)
 	Local $mbar = DllCall($hDll, "ptr", "newMenuBarPtr", "ptr", $frmMap.ptr, "wstr", $baseMenus)
 	if @error Then $frmMap.error = @error
+	setMenuEventsAndPropsValues($frmMap, $mnuMainMenu)
 EndFunc
 
 Func glf_FormAddMenuItem(Byref $frmMap, $parentIdOrText, $menuText, $fgColor = 0x000000)
@@ -1010,6 +998,7 @@ EndFunc
 func glf_ControlSetContextMenu(Byref $controlMap, $menuTexts)
 	Local $res = DllCall($hDll, "ptr", "ctrlSetContextMenu", "ptr", $controlMap.ptr, "wstr", $menuTexts)
 	if @error Then $controlMap.error = @error
+	setMenuEventsAndPropsValues($controlMap, $mnuCMenu)
 	Return $res[0]
 EndFunc
 

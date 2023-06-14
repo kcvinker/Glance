@@ -248,7 +248,7 @@ proc createFormHandle(this: Form): HWND {.exportc:"frmCreateHwnd", stdcall, dynl
         SetWindowLongPtrW(this.mHandle, GWLP_USERDATA, cast[LONG_PTR](cast[PVOID](this)))
         this.setFontInternal()
         result = this.mHandle
-        echo "form created"
+
 
 
 
