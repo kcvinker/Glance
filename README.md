@@ -95,7 +95,7 @@ glf_ControlSetProperty($tkb1, $tkb1.customDraw, True) ; If set to True, we can c
 glf_ControlSetProperty($tkb2, $tkb2.customDraw, True)
 glf_ControlSetProperty($tkb1, $tkb1.showSelRange, True) ; We can see the selection are in different color.
 glf_ControlSetProperty($tkb2, $tkb2.ticColor, 0xff1654) ; Set tic color
-;;glf_ControlSetProperty($tkb2, $gTrackBarProps.channelColor, 0x006d77) ; Set channel color.
+;;glf_ControlSetProperty($tkb2, $tkb2.channelColor, 0x006d77) ; Set channel color.
 
 Local $tv = glf_NewTreeView($frm, 760, 25, 0, 300) ; Create new TreeView
 glf_ControlSetProperty($tv, $tv.backColor, 0xa3b18a) ; Set back color
@@ -108,7 +108,7 @@ glf_TreeViewAddChildNodes($tv, 2, "OSx Cheetah|OSx Leopard|OSx Catalina|OSx Vent
 
 
 ; func onBtnClick($c, $e) ; $c = sender of this event aka, the button itself. $e = EventArgs, like in .NET
-; 	print("Calendar view mode", glf_ControlGetProperty($cb1, $gControlProps.width))
+; 	print("CheckBox width", glf_ControlGetProperty($cb1, $cb1.width))
 ; EndFunc
 
 func menuClick($m, $e) ; Here $m is menu itself. $e is MenuEventArgs
